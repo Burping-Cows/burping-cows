@@ -1,0 +1,9 @@
+{
+  "expo": {
+    "name": "Burping Cows", "slug": "burping-cows", "scheme": "burping-cows", "version": "1.0.0", "orientation": "portrait", "userInterfaceStyle": "light",
+    "ios": { "supportsTablet": true, "bundleIdentifier": "au.burpingcows.app" },
+    "android": { "package": "au.burpingcows.app" },
+    "web": { "bundler": "metro", "output": "static", "name": "Burping Cows" },
+    "plugins": ["expo-router"]
+  }
+}
