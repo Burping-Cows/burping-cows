@@ -1,0 +1,62 @@
+import React from 'react';
+import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View, ViewStyle } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
+import { router } from 'expo-router';
+import Svg, { Circle } from 'react-native-svg';
+import { theme } from '../config/theme';
+import { useApp } from '../state/AppProvider';
+import { cloudConfigured, incompleteCloudConfig } from '../lib/supabase';
+import { Eligibility } from '../types/assessment';
+import { eligibilityLabel } from '../lib/eligibility';
+const c = theme.colors;
+export type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
+export function Icon({ name, color = c.primary, size = 24 }: { name: IconName; color?: string; size?: number }) { return <MaterialCommunityIcons name={name} size={size} color={color} accessible={false} />; }
+export function Heading({ children, small = false }: { children: React.ReactNode; small?: boolean }) { return <Text style={[styles.heading, small && { fontSize: 22, lineHeight: 29 }]}>{children}</Text>; }
+export function Body({ children, muted = false, style }: { children: React.ReactNode; muted?: boolean; style?: React.ComponentProps<typeof Text>['style'] }) { return <Text style={[styles.body, muted && { color: c.muted }, style]}>{children}</Text>; }
+export function Card({ children, pale = false, style }: { children: React.ReactNode; pale?: boolean; style?: ViewStyle }) { return <View style={[styles.card, pale && { backgroundColor: c.pale, borderColor: c.pale }, style]}>{children}</View>; }
+export function Button({ title, onPress, secondary = false, loading = false, icon, destructive = false, disabled = false }: { title: string; onPress: () => void; secondary?: boolean; loading?: boolean; icon?: IconName; destructive?: boolean; disabled?: boolean }) {
+  return <Pressable accessibilityRole="button" accessibilityLabel={title} disabled={loading || disabled} onPress={() => { if (Platform.OS !== 'web') void Haptics.selectionAsync().catch(() => {}); onPress(); }} style={({ pressed }) => [styles.button, secondary && styles.secondary, destructive && { backgroundColor: c.error }, (pressed || loading || disabled) && { opacity: 0.65 }]}>
+    {loading ? <ActivityIndicator color={secondary ? c.primary : c.white} /> : <><Text style={[styles.buttonText, secondary && { color: c.primary }]}>{title}</Text>{icon && <Icon name={icon} color={secondary ? c.primary : c.white} size={22} />}</>}
+  </Pressable>;
+}
+export function ErrorNotice({ message, onRetry }: { message?: string; onRetry?: () => void }) { if (!message) return null; return <View accessibilityRole="alert" style={styles.error}><Body style={{ color: c.error }}>{message}</Body>{onRetry && <Button title="Retry" secondary onPress={onRetry} />}</View>; }
+export function Screen({ children, title, subtitle, step, back = false }: { children: React.ReactNode; title?: string; subtitle?: string; step?: number; back?: boolean }) {
+  const app = useApp();
+  return <SafeAreaView style={{ flex: 1, backgroundColor: c.cream }} edges={['top', 'left', 'right']}><KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}><ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.scroll}>
+    <View style={styles.container}>
+      {(title || back) && <View style={styles.header}>{back && <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)/home')} style={styles.back}><Icon name="chevron-left" size={28} /></Pressable>}<View style={{ flex: 1 }}><Heading small>{title}</Heading>{subtitle && <Body muted>{subtitle}</Body>}</View>{step && <Text style={styles.step}>{step} of 3</Text>}</View>}
+      {step && <View style={styles.track}><View style={[styles.progress, { width: `${step / 3 * 100}%` }]} /></View>}
+      {!cloudConfigured && <View style={styles.mode}><Icon name="leaf-circle-outline" size={16} /><Text style={styles.modeText}>{incompleteCloudConfig ? 'Incomplete Supabase setup · local demo mode' : 'Local demo mode · saved on this device'}</Text></View>}
+      {app.draft.sample && title?.includes('assessment') && <Body muted>Sample farm · demonstration data</Body>}
+      <ErrorNotice message={app.storageError ? `Draft could not be saved locally: ${app.storageError}` : undefined} />
+      {children}
+    </View>
+  </ScrollView></KeyboardAvoidingView></SafeAreaView>;
+}
+export function Input({ label, value, onChange, onBlur, error, suffix, helper, numeric = false }: { label: string; value: string; onChange: (value: string) => void; onBlur?: () => void; error?: string; suffix?: string; helper?: string; numeric?: boolean }) {
+  return <View style={{ gap: 7 }}><Text style={styles.label}>{label}</Text><View style={[styles.inputWrap, error && { borderColor: c.error }]}><TextInput accessibilityLabel={label} value={value} onChangeText={onChange} onBlur={onBlur} keyboardType={numeric ? 'decimal-pad' : 'default'} inputMode={numeric ? 'decimal' : 'text'} style={styles.input} placeholderTextColor={c.muted} placeholder={numeric ? 'Enter amount' : undefined} />{suffix && <Text style={{ color: c.muted, paddingRight: 14 }}>{suffix}</Text>}</View>{helper && <Body muted style={{ fontSize: 12 }}>{helper}</Body>}{error && <Text accessibilityRole="alert" style={styles.fieldError}>{error}</Text>}</View>;
+}
+export function Options({ label, options, value, onChange, error, multi = false }: { label: string; options: readonly string[]; value: string | string[]; onChange: (value: string) => void; error?: string; multi?: boolean }) {
+  return <View style={{ gap: 9 }}><Text style={styles.label}>{label}</Text><View style={styles.options}>{options.map(option => { const selected = Array.isArray(value) ? value.includes(option) : value === option; return <Pressable key={option} accessibilityRole={multi ? 'checkbox' : 'radio'} accessibilityState={{ checked: selected }} accessibilityLabel={`${label}: ${option}`} onPress={() => onChange(option)} style={({ pressed }) => [styles.option, selected && styles.optionSelected, pressed && { opacity: 0.7 }]}>{selected && <Icon name="check-circle" size={17} />}<Text style={[styles.optionText, selected && { color: c.primary, fontFamily: 'DM_Sans_700Bold' }]}>{option}</Text></Pressable>; })}</View>{error && <Text accessibilityRole="alert" style={styles.fieldError}>{error}</Text>}</View>;
+}
+export function ProgressRing({ value, size = 98 }: { value: number; size?: number }) { const radius = 39, circumference = 2 * Math.PI * radius; return <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }} accessibilityLabel={`${value}% prepared`}><Svg width={size} height={size} viewBox="0 0 100 100" style={StyleSheet.absoluteFill}><Circle cx="50" cy="50" r={radius} stroke="#DDEDD6" strokeWidth="9" fill="none" /><Circle cx="50" cy="50" r={radius} stroke={c.primary} strokeWidth="9" fill="none" strokeDasharray={`${circumference} ${circumference}`} strokeDashoffset={circumference * (1 - value / 100)} strokeLinecap="round" rotation="-90" origin="50,50" /></Svg><Text style={{ fontFamily: 'DM_Sans_700Bold', color: c.dark, fontSize: 25 }}>{value}%</Text><Text style={{ color: c.muted, fontSize: 11 }}>prepared</Text></View>; }
+export function MetricCard({ label, value, hint, icon, children }: { label: string; value?: string; hint?: string; icon: IconName; children?: React.ReactNode }) { return <Card style={{ flexGrow: 1, flexBasis: '46%', minWidth: 140, gap: 9 }}><View style={styles.row}><Icon name={icon} size={23} /><Text style={styles.metricLabel}>{label}</Text></View>{value && <Text style={styles.metricValue}>{value}</Text>}{hint && <Body muted style={{ fontSize: 12 }}>{hint}</Body>}{children}</Card>; }
+export function StatusBadge({ status }: { status: Eligibility }) { return <View style={[styles.badge, status !== 'LIKELY_ELIGIBLE' && { backgroundColor: c.warningBg }]}><Icon name={status === 'LIKELY_ELIGIBLE' ? 'check-circle' : 'alert-circle-outline'} size={17} color={status === 'LIKELY_ELIGIBLE' ? c.primary : c.warning} /><Text style={[styles.badgeText, status !== 'LIKELY_ELIGIBLE' && { color: c.warning }]}>{eligibilityLabel[status]}</Text></View>; }
+export function DisclaimerCard() { return <Card style={{ backgroundColor: '#EEF4F9', borderColor: '#E3EDF3', gap: 8 }}><View style={styles.row}><Icon name="information-outline" color={c.blue} size={20} /><Text style={[styles.label, { color: c.blue }]}>Indicative estimate only.</Text></View><Body style={{ fontSize: 12, lineHeight: 19, color: c.blue }}>Actual ACCU eligibility, calculation, issuance and project requirements depend on the applicable Clean Energy Regulator method and professional verification.</Body></Card>; }
+export function EmptyState({ title, text, action, onPress }: { title: string; text: string; action?: string; onPress?: () => void }) { return <Card pale style={{ alignItems: 'center', gap: 14, paddingVertical: 30 }}><Icon name="sprout-outline" size={46} /><Heading small>{title}</Heading><Body muted style={{ textAlign: 'center' }}>{text}</Body>{action && onPress && <Button title={action} onPress={onPress} icon="arrow-right" />}</Card>; }
+export const money = (value: number) => `A$${Math.round(value).toLocaleString('en-AU')}`;
+export const number = (value: number, digits = 0) => value.toLocaleString('en-AU', { maximumFractionDigits: digits });
+export const styles = StyleSheet.create({
+  scroll: { flexGrow: 1, paddingHorizontal: 20, paddingTop: 20, paddingBottom: 36 }, container: { width: '100%', maxWidth: 680, alignSelf: 'center', gap: 18 },
+  heading: { fontFamily: 'DM_Sans_700Bold', fontSize: 32, lineHeight: 38, color: c.dark, letterSpacing: -0.9 }, body: { fontFamily: 'DM_Sans_400Regular', color: c.text, fontSize: 15, lineHeight: 23 },
+  card: { borderRadius: 20, padding: 18, backgroundColor: c.white, borderWidth: 1, borderColor: '#E8EEE5', gap: 12, boxShadow: '0px 3px 16px rgba(20,55,35,0.035)' },
+  button: { minHeight: 52, borderRadius: 15, backgroundColor: c.primary, justifyContent: 'center', alignItems: 'center', flexDirection: 'row', gap: 12, paddingHorizontal: 20 }, secondary: { backgroundColor: c.pale, borderWidth: 1, borderColor: c.border }, buttonText: { color: c.white, fontFamily: 'DM_Sans_700Bold', fontSize: 15 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 9 }, grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 }, header: { flexDirection: 'row', alignItems: 'center', gap: 8 }, back: { minHeight: 44, minWidth: 36, justifyContent: 'center' }, step: { color: c.muted, fontFamily: 'DM_Sans_500Medium', fontSize: 13 },
+  track: { height: 5, borderRadius: 3, backgroundColor: '#E3ECDD', overflow: 'hidden' }, progress: { height: 5, backgroundColor: c.leaf, borderRadius: 3 }, mode: { flexDirection: 'row', gap: 6, alignItems: 'center' }, modeText: { fontFamily: 'DM_Sans_400Regular', fontSize: 11, color: c.muted },
+  label: { fontFamily: 'DM_Sans_700Bold', fontSize: 13, color: c.text }, inputWrap: { minHeight: 52, borderRadius: 13, borderWidth: 1, borderColor: c.border, backgroundColor: c.white, flexDirection: 'row', alignItems: 'center' }, input: { flex: 1, minWidth: 0, padding: 14, fontFamily: 'DM_Sans_500Medium', color: c.text, fontSize: 16 },
+  options: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 }, option: { minHeight: 44, borderWidth: 1, borderColor: c.border, borderRadius: 12, backgroundColor: c.white, paddingHorizontal: 13, paddingVertical: 11, flexDirection: 'row', gap: 6, alignItems: 'center' }, optionSelected: { backgroundColor: c.pale, borderColor: c.primary }, optionText: { fontFamily: 'DM_Sans_400Regular', fontSize: 13, color: c.muted, flexShrink: 1 },
+  fieldError: { fontSize: 12, color: c.error, fontFamily: 'DM_Sans_400Regular' }, error: { padding: 14, backgroundColor: '#FFF0EA', borderRadius: 14, gap: 12 },
+  metricLabel: { fontFamily: 'DM_Sans_500Medium', fontSize: 12, color: c.text, flexShrink: 1 }, metricValue: { fontFamily: 'DM_Sans_700Bold', fontSize: 22, color: c.dark, letterSpacing: -0.6 }, badge: { flexDirection: 'row', alignSelf: 'flex-start', alignItems: 'center', gap: 6, backgroundColor: c.pale, paddingHorizontal: 10, paddingVertical: 7, borderRadius: 20 }, badgeText: { fontFamily: 'DM_Sans_500Medium', color: c.primary, fontSize: 12 },
+});

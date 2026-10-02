@@ -6,7 +6,13 @@ const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const key = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 export const cloudConfigured = Boolean(url && key);
 export const incompleteCloudConfig = Boolean(url || key) && !cloudConfigured;
-export const supabase = cloudConfigured ? createClient(url!, key!, { auth: { storage: AsyncStorage, autoRefreshToken: true, persistSession: true, detectSessionInUrl: false }, global: { fetch: (input, init) => fetch(input, { ...init, signal: init?.signal ?? AbortSignal.timeout(15000) }) } }) : null;
+const timedFetch: typeof fetch = async (input, init) => {
+  if (init?.signal) return fetch(input, init);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 15000);
+  try { return await fetch(input, { ...init, signal: controller.signal }); } finally { clearTimeout(timer); }
+};
+export const supabase = cloudConfigured ? createClient(url!, key!, { auth: { storage: AsyncStorage, autoRefreshToken: true, persistSession: true, detectSessionInUrl: false }, global: { fetch: timedFetch } }) : null;
 if (Platform.OS !== 'web' && supabase) AppState.addEventListener('change', state => { if (state === 'active') supabase.auth.startAutoRefresh(); else supabase.auth.stopAutoRefresh(); });
 let authPromise: Promise<string> | undefined;
 export async function getOwnerId(): Promise<string> {

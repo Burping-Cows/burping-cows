@@ -1,0 +1,14 @@
+import { beforeEach, expect, it, vi } from 'vitest';
+import { defaultAssumptions } from '../src/config/assumptions';
+import { calculateAssessment } from '../src/lib/calculations';
+import { demoInput } from '../src/lib/demo';
+import { SavedAssessment } from '../src/types/assessment';
+import { listAssessments, persistAssessment, removeAssessment, remoteConfigSchema, toDatabase } from '../src/lib/repository';
+const local = vi.hoisted(() => new Map<string, unknown>());
+vi.mock('../src/lib/supabase', () => ({ supabase: null, getOwnerId: vi.fn() }));
+vi.mock('../src/lib/storage', () => ({ readLocal: async (key: string, fallback: unknown) => local.get(key) ?? fallback, writeLocal: async (key: string, value: unknown) => { local.set(key, value); }, getDeviceId: async () => 'device' }));
+const record = (): SavedAssessment => ({ id: 'abc', createdAt: '2026-10-02T00:00:00Z', updatedAt: '2026-10-02T00:00:00Z', input: demoInput, result: calculateAssessment(demoInput), assumptions: defaultAssumptions, snapshotVersion: 1 });
+beforeEach(() => local.clear());
+it('saves, edits, lists, and deletes a local assessment without duplicates', async () => { await persistAssessment(record()); await persistAssessment({ ...record(), input: { ...demoInput, animalCount: 100 } }); expect(await listAssessments()).toHaveLength(1); expect((await listAssessments())[0].input.animalCount).toBe(100); await removeAssessment('abc'); expect(await listAssessments()).toEqual([]); });
+it('maps persistence inputs and preserves the calculation snapshot', () => { const r = record(), row = toDatabase(r, 'owner', 'device'); expect(row).toMatchObject({ owner_id: 'owner', device_id: 'device', annual_operating_cost: null, estimated_accus: 2296, readiness_score: 60, calibration_records: false }); expect(row.calculation_snapshot).toEqual(r); });
+it('rejects malformed server configuration instead of using invalid factors', () => { expect(remoteConfigSchema.safeParse({ default_accu_price: -1 }).success).toBe(false); expect(remoteConfigSchema.safeParse({ default_accu_price: 37, methodology_note: 'demo', compliance_ranges: { Low: [70, 40], Medium: [70, 120], High: [120, 200] } }).success).toBe(false); });

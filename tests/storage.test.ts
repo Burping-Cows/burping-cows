@@ -1,0 +1,12 @@
+import { beforeEach, expect, it, vi } from 'vitest';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getDeviceId, readLocal, writeLocal } from '../src/lib/storage';
+const store = vi.hoisted(() => new Map<string, string>());
+vi.mock('@react-native-async-storage/async-storage', () => ({ default: { getItem: vi.fn(async (key: string) => store.get(key) ?? null), setItem: vi.fn(async (key: string, value: string) => { store.set(key, value); }) } }));
+vi.mock('expo-crypto', () => ({ randomUUID: () => 'stable-device-uuid' }));
+beforeEach(() => store.clear());
+it('restores a serialized draft', async () => { const draft = { input: { animalCount: 450 }, step: 2 }; await writeLocal('draft', draft); expect(await readLocal('draft', null)).toEqual(draft); });
+it('preserves the latest write when updates happen together', async () => { await Promise.all([writeLocal('draft', 1), writeLocal('draft', 2), writeLocal('draft', 3)]); expect(await readLocal('draft', 0)).toBe(3); });
+it('preserves corrupted storage and reports the error', async () => { store.set('burping-cows:draft', '{bad'); await expect(readLocal('draft', null)).rejects.toThrow('preserved'); expect(store.get('burping-cows:draft')).toBe('{bad'); });
+it('recovers the write queue after a failed save', async () => { vi.mocked(AsyncStorage.setItem).mockRejectedValueOnce(new Error('storage full')); await expect(writeLocal('draft', 1)).rejects.toThrow('storage full'); await writeLocal('draft', 2); expect(await readLocal('draft', 0)).toBe(2); });
+it('generates a persistent device identity once', async () => { expect(await getDeviceId()).toBe('stable-device-uuid'); expect(await getDeviceId()).toBe('stable-device-uuid'); });

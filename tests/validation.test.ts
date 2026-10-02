@@ -1,0 +1,10 @@
+import { expect, it } from 'vitest';
+import { farmSchema, priceSchema, projectSchema } from '../src/lib/validation';
+import { demoInput } from '../src/lib/demo';
+it('accepts the demo and optional unknown operating cost', () => { expect(farmSchema.safeParse(demoInput).success).toBe(true); expect(projectSchema.safeParse(demoInput).success).toBe(true); });
+it.each([0, -1, 1.5, NaN])('rejects invalid animal count %s', animalCount => expect(farmSchema.safeParse({ ...demoInput, animalCount }).success).toBe(false));
+it('requires a direct methane amount, and rejects infinity', () => { expect(projectSchema.safeParse({ ...demoInput, methaneTonnes: undefined }).success).toBe(false); expect(projectSchema.safeParse({ ...demoInput, methaneTonnes: Infinity }).success).toBe(false); });
+it('allows zero methane and zero implementation cost', () => expect(projectSchema.safeParse({ ...demoInput, methaneTonnes: 0, implementationCost: 0 }).success).toBe(true));
+it('blocks the animal estimator on an unsupported baseline', () => expect(projectSchema.safeParse({ ...demoInput, manureSystem: 'Other', methaneInputType: 'estimator' }).success).toBe(false));
+it.each([-1, 101])('bounds capture efficiency %s', captureEfficiency => expect(projectSchema.safeParse({ ...demoInput, methaneInputType: 'estimator', captureEfficiency }).success).toBe(false));
+it.each([-1, Infinity, NaN, 100001])('rejects invalid prices %s', price => expect(priceSchema.safeParse(price).success).toBe(false));
