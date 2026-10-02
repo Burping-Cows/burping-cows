@@ -1,6 +1,6 @@
 # Burping Cows
 
-A weekend MVP for Australian dairy and piggery farmers exploring methane-to-ACCU feasibility. Built with Expo SDK 57, React Native, TypeScript, Expo Router, React Hook Form, Zod, and Supabase. The green visual direction follows the supplied reference, with original reusable SVG farm illustrations. The supplied cow-and-leaf logo in `assets/branding/logo.png` is used on the welcome, dashboard, and About screens, and as the app icon and web favicon. Native icon changes require rebuilding the app; Expo Go retains its own launcher icon.
+A weekend MVP for Australian dairy and piggery farmers exploring methane-to-ACCU feasibility. Built with Expo SDK 57, React Native, TypeScript, Expo Router, React Hook Form, Zod, and Supabase. The green visual direction follows the supplied reference, with original reusable SVG farm illustrations. The supplied cow-with-methane-puff logo in `assets/branding/cow-methane-logo.png` is used on the welcome, dashboard, and About screens, and as the app icon and web favicon. Native icon changes require rebuilding the app; Expo Go retains its own launcher icon.
 
 ## Run locally
 

@@ -11,7 +11,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "lint": "eslint .",
-    "export:web": "expo export --platform web"
+    "export:web": "expo export --platform web",
+    "kill-sim": "killall Simulator"
   },
   "dependencies": {
     "@expo-google-fonts/dm-sans": "^0.4.2",
