@@ -1,13 +1,8 @@
 import React from 'react';
 import Svg, { Circle, Defs, Ellipse, G, LinearGradient, Path, Rect, Stop } from 'react-native-svg';
-import { View } from 'react-native';
+import { Image, View } from 'react-native';
 export function Logo({ size = 110 }: { size?: number }) {
-  return <Svg width={size} height={size} viewBox="0 0 140 120" accessibilityLabel="Burping Cows leaf and horn mark">
-    <Path d="M26 35C8 31 3 44 9 50C22 60 37 43 48 35C46 61 29 70 43 96C53 80 66 55 57 32C75 40 94 32 103 18C110 9 117 8 127 7C126 25 113 31 101 33C111 40 109 49 100 51C92 54 83 42 77 38C65 30 42 22 26 35Z" fill="#0B3735" />
-    <Path d="M60 107C48 77 70 54 103 50C105 82 82 103 60 107Z" fill="#70AB57" />
-    <Path d="M61 106C68 91 81 74 96 60" stroke="#176544" strokeWidth="3" fill="none" />
-    <Path d="M111 76C123 67 135 72 135 82C135 91 125 94 117 89M106 100C117 94 125 98 124 105" stroke="#ACD4A6" strokeWidth="9" strokeLinecap="round" fill="none" />
-  </Svg>;
+  return <Image source={require('../../assets/branding/logo.png')} style={{ width: size, height: size, borderRadius: size * 0.16 }} resizeMode="contain" accessible accessibilityRole="image" accessibilityLabel="Burping Cows cow and leaf logo" />;
 }
 export function FarmIllustration({ height = 185, captured = false }: { height?: number; captured?: boolean }) {
   return <View style={{ overflow: 'hidden', borderRadius: 18 }}><Svg width="100%" height={height} viewBox="0 0 600 280" preserveAspectRatio="xMidYMax slice" accessibilityLabel={captured ? 'Farm capturing methane for energy' : 'Rolling green hills and a dairy farm'}>
