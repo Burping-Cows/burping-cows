@@ -12,7 +12,11 @@
     "test": "vitest run",
     "lint": "eslint .",
     "export:web": "expo export --platform web",
-    "kill-sim": "killall Simulator"
+    "kill-sim": "killall Simulator",
+    "dev": "vite --config landing/vite.config.ts",
+    "typecheck:landing": "tsc --project landing/tsconfig.json --noEmit",
+    "build": "npm run typecheck:landing && vite build --config landing/vite.config.ts",
+    "preview": "vite preview --config landing/vite.config.ts"
   },
   "dependencies": {
     "@expo-google-fonts/dm-sans": "^0.4.2",
@@ -45,10 +49,12 @@
     "@testing-library/react": "^16.3.3",
     "@testing-library/react-native": "^14.0.1",
     "@types/react": "~19.2.2",
+    "@types/react-dom": "~19.2.0",
     "eslint": "^9.39.5",
     "eslint-config-expo": "^57.0.2",
     "react-test-renderer": "^19.2.3",
     "typescript": "~6.0.3",
+    "vite": "^7.1.7",
     "vitest": "^5.0.3"
   }
 }

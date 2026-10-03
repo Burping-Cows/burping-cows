@@ -1,5 +1,13 @@
 # Burping Cows
 
+## Landing page
+
+The responsive React + TypeScript + Vite landing page lives in `landing/` and
+reuses the app's branding. Run `npm install` and `npm run dev` to preview it;
+`npm run build` creates a static `dist/` directory for Cloudflare Pages.
+See [DEPLOY.md](DEPLOY.md) for deployment and the assessment app URL setting.
+The existing Expo application and commands below remain available.
+
 A weekend MVP for Australian dairy and piggery farmers exploring methane-to-ACCU feasibility. Built with Expo SDK 57, React Native, TypeScript, Expo Router, React Hook Form, Zod, and Supabase. The green visual direction follows the supplied reference, with original reusable SVG farm illustrations. The supplied cow-with-methane-puff logo in `assets/branding/cow-methane-logo.png` is used on the welcome, dashboard, and About screens, and as the app icon and web favicon. Native icon changes require rebuilding the app; Expo Go retains its own launcher icon.
 
 ## Run locally
