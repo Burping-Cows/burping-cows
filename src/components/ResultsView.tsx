@@ -1,60 +1,34 @@
 import React from 'react';
-import { View, Text } from 'react-native';
-import { AssessmentInput, CalculationResult } from '../types/assessment';
-import { Body, Card, DisclaimerCard, Heading, MetricCard, StatusBadge, money, number, styles } from './ui';
-import { FarmIllustration } from './Illustration';
-import { theme } from '../config/theme';
-
-export function OpportunityMetrics({ input, result }: { input: AssessmentInput; result: CalculationResult }) {
+import { View } from 'react-native';
+import { AssessmentInput, CalculationResult, Assumptions } from '../types/assessment';
+import { Body, Card, DisclaimerCard, Heading, Icon, MetricCard, ProgressRing, StatusBadge, money, number, styles } from './ui';
+import { FINANCIAL_ASSUMPTIONS, defaultAssumptions } from '../config/assumptions';
+import { viabilityLabel } from '../lib/finance';
+import { eligibilityLabel } from '../lib/eligibility';
+const statusLabel = { incomplete: 'Incomplete', projected: 'Projected', measured_unverified: 'Measured · unverified', reviewed: 'Reviewed' };
+export function ResultsView({ input: i, result: r, assumptions = defaultAssumptions }: { input: AssessmentInput; result: CalculationResult; assumptions?: Assumptions }) {
+  const t = r.technical, f = r.finance, b = t.breakdown;
+  const display = (value: number | null, unit: string) => value === null ? 'Calculation incomplete' : `${number(value,2)} ${unit}`;
   return <>
     <View style={styles.grid}>
-      <MetricCard label="Estimated ACCUs" value={number(result.accus)} hint="ACCUs / year · indicative" />
-      <MetricCard label="Gross carbon value" value={money(result.annualValue) + '/yr'} hint={'At ' + money(input.accuPrice) + '/ACCU'} />
+      <MetricCard label="Eligibility" value={eligibilityLabel[r.eligibility]} hint="Preliminary route screening" icon="clipboard-check-outline" />
+      <MetricCard label="Preparation" value={r.preparation.phase.replaceAll('_',' ')} hint="Evidence and implementation tasks" icon="sprout" />
+      <MetricCard label="Viability" value={viabilityLabel[f.state]} hint="Independent financial scenario" icon="cash-multiple" />
+      <MetricCard label="Calculation" value={statusLabel[t.status]} hint={t.explanation} icon="calculator-variant-outline" />
     </View>
-    <View style={styles.grid}>
-      <MetricCard label="Compliance burden" value={result.burden} hint="Demonstration planning category" />
-      <MetricCard label="Readiness" value={result.readiness + '%'} hint={result.readinessLabel} />
-    </View>
-  </>;
-}
-export function NextSteps({ steps }: { steps: string[] }) {
-  return <>{steps.map((step, index) => <Card key={step}><Body muted style={{ minHeight: 46 }}>{index + 1}. {step}</Body></Card>)}</>;
-}
-export function ResultsView({ input, result, details = false }: { input: AssessmentInput; result: CalculationResult; details?: boolean }) {
-  return <>
-    <Card pale>
-      <Body design="11:510">Estimated emissions reduction</Body>
-      <Heading design="11:511">{number(result.co2e, 1)} tCO₂-e/yr</Heading>
-      <Body muted design="11:512">{number(result.methaneTonnes, 2)} tonnes CH₄ captured / reduced each year</Body>
-      <FarmIllustration height={115} captured variant={details ? 'details' : undefined} />
+    <Card pale><Heading small>Net abatement</Heading><Heading>{display(t.annualNetAbatement,'t CO₂-e/year')}</Heading><Body>Indicative ACCU Equivalent: {t.annualWholeUnits === null ? 'Incomplete' : `~${number(t.annualWholeUnits)} / year`}</Body><Body muted>Planning equivalent, not credits you will receive. Full decimals are retained internally. Actual ACCU issuance depends on project registration, methodology compliance, monitoring, reporting and verification by the Clean Energy Regulator.</Body><Heading small>Estimated gross carbon value</Heading><Heading>{f.grossCarbonValue === null ? 'Not available' : `${money(f.grossCarbonValue)}/year`}</Heading><Body muted>At {money(i.accuPrice)}/ACCU · demo market assumption · no live market feed. Value uses the unrounded annual equivalent.</Body>{t.missing.length > 0 && <Body muted>Missing: {t.missing.join(', ')}</Body>}</Card>
+    <Card><Heading small>Preparation progress</Heading><ProgressRing value={r.preparation.progress} />{r.preparation.phases.map(phase => <Body key={phase.id}>{phase.title}: {phase.complete} / {phase.total} complete ({phase.progress}%)</Body>)}<Body muted>{r.actionPlan.filter(task => task.priority === 'high' && task.status !== 'complete').length} high-priority tasks remain. Preparation progress is not legal eligibility or certification.</Body></Card>
+    <Card><Heading small>Financial scenario</Heading><Body>{f.explanation}</Body>{([['Implementation / CAPEX',i.implementationCost],['Development / setup',i.developmentCost],['Annual operating cost',i.annualOperatingCost],['Annual compliance cost',i.annualComplianceCost],['Annual energy savings',i.annualEnergySavings],['Other annual revenue',i.otherRevenue],['Annual fees',i.annualFees]] as const).map(([label,value]) => <Detail key={label} label={label} value={value === undefined ? 'Unknown' : money(value)} />)}
+      <Detail label="Annual operating cash" value={f.base ? money(f.base.operatingCash) : 'Not assessed'} /><Detail label="Simple payback" value={f.base?.simplePayback == null ? 'Not available' : `${number(f.base.simplePayback,2)} years`} /><Detail label="Net present value" value={f.base ? money(f.base.npv) : 'Not assessed'} /><Detail label="Horizon / discount" value={`${i.projectLifetimeYears ?? 'Unknown'} years / ${i.discountRate === undefined ? 'Unknown' : `${number(i.discountRate*100,1)}%`}`} />
+      {f.low && f.high && <><Body>Low price NPV ({money(i.lowAccuPrice)}): {money(f.low.npv)}</Body><Body>High price NPV ({money(i.highAccuPrice)}): {money(f.high.npv)}</Body></>}
+      {f.missing.length > 0 && <Body muted>Missing financial data: {f.missing.join(', ')}</Body>}<Body muted style={{ fontSize: 12 }}>{FINANCIAL_ASSUMPTIONS}</Body>
     </Card>
-    <StatusBadge status={result.eligibility} />
-    <Card><Heading small design="11:560">{result.verdict}</Heading>{result.eligibilityReasons.map(reason => <Body muted design="11:561" key={reason}>{reason}</Body>)}</Card>
-    <OpportunityMetrics input={input} result={result} />
-    <Card>
-      <Heading small>Planning costs</Heading>
-      <Body muted style={styles.small}>Implementation</Body>
-      <Body>{input.implementationCost === undefined ? 'Not supplied' : money(input.implementationCost)}</Body>
-      <Body muted style={styles.small}>Annual operating costs</Body>
-      <Body>{input.annualOperatingCost === undefined ? 'Not supplied' : money(input.annualOperatingCost)}</Body>
-      <Body muted style={styles.small}>Indicative compliance range</Body>
-      <Body>{money(result.complianceRange[0])}–{money(result.complianceRange[1])}{result.burden === 'High' ? '+' : ''}</Body>
-      <Body muted design="11:588">Indicative planning range only. Actual project development, audit and compliance costs vary significantly.</Body>
-      <Text style={styles.label}>Indicative payback: {result.breakEvenYears === null ? 'Not available' : number(result.breakEvenYears, 1) + ' years'}</Text>
-      <Body muted design="11:590">Implementation plus midpoint compliance cost ÷ annual gross carbon value. Excludes operating costs, financing, tax, energy revenue, and changes in credit issuance or price.</Body>
-    </Card>
-    <Card>
-      <Heading small>Five-year gross value</Heading><Heading>{money(result.fiveYearValue)}</Heading>
-      <Body muted design="11:594">Cumulative value at a constant price · indicative only</Body>
-      <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 10 }} accessibilityLabel={'Cumulative gross value for years one to five: ' + [1, 2, 3, 4, 5].map(year => money(year * result.annualValue)).join(', ')}>
-        {[1, 2, 3, 4, 5].map(year => <View key={year} style={{ flex: 1, alignItems: 'flex-start', gap: 5 }}>
-          <Text style={[styles.small, { color: theme.colors.muted, textAlign: 'center', width: '100%' }]}>{result.annualValue * year >= 1000 ? Math.round(year * result.annualValue / 1000) + 'k' : number(year * result.annualValue)}</Text>
-          <View style={{ height: result.annualValue > 0 ? year * 23 : 2, width: 46, maxWidth: '100%', backgroundColor: year === 5 ? theme.colors.primary : theme.colors.leaf, borderRadius: 5 }} />
-          <Text style={[styles.modeText, { textAlign: 'center', width: '100%' }]}>Year {year}</Text>
-        </View>)}
-      </View>
-      <Body muted design="11:616">Illustrates five years of constant annual estimates, not a forecast or net profit. Project lifetime: {input.projectLifetimeYears ?? '—'} years.</Body>
-    </Card>
+    <Card><Heading small>Abatement breakdown</Heading>{b ? <>
+      <Detail label="Captured biogas (input)" value={`${number(i.biogasVolumeM3!,2)} m³`} /><Detail label="Flare operation" value={`${number(i.flareOperationFraction!*100,1)}%`} /><Detail label="Biogas sent to operating flare" value={`${number(b.biogasVolumeM3,2)} m³`} /><Detail label="Methane content" value={`${number(i.methaneFraction!*100,1)}%`} /><Detail label="Destruction efficiency" value={`${number(i.destructionEfficiency!*100,1)}%`} /><Detail label="Methane destroyed" value={`${number(b.methaneDestroyedM3,2)} m³`} /><Detail label="Methane mass" value={`${number(b.methaneMassTonnes,5)} t CH₄`} /><Detail label="Gross abatement" value={`${number(b.grossAbatementTCO2e,5)} t CO₂-e`} /><Detail label="Project emissions" value={`${number(b.projectEmissionsTCO2e,2)} t CO₂-e`} /><Detail label="Raw gross − emissions" value={`${number(b.rawNetAbatementTCO2e,5)} t CO₂-e`} /><Detail label="Net abatement (floor at zero)" value={`${number(b.netAbatementTCO2e,5)} t CO₂-e`} /><Body muted>For {i.periodMonths} months. Annual equivalent = net × 12 ÷ period months. Methane mass = destroyed methane × {assumptions.methaneDensityTonnesPerM3} t/m³; CO₂-e = methane mass × {assumptions.methaneGwp}.</Body>
+    </> : <Body muted>{t.explanation}</Body>}</Card>
+    <Card><Heading small>Input provenance</Heading><Body muted>{assumptions.version} · {assumptions.methodologyNote}</Body>{([['Biogas volume',i.biogasVolumeM3,i.biogasSource],['Methane fraction',i.methaneFraction,i.methaneSource],['Destruction efficiency',i.destructionEfficiency,i.destructionSource],['Flare operation',i.flareOperationFraction,i.operationSource],['Project emissions',i.projectEmissionsTCO2e,i.emissionsSource]] as const).map(([label,value,source]) => <Body key={label}>{label}: {value === undefined ? 'Unknown' : number(value,5)} · {value === undefined ? 'No source yet' : source.replaceAll('_',' ')}</Body>)}<Body muted>Method / planning defaults for composition and destruction are demonstration assumptions and require confirmation for the actual device and method. Gas volume must be at NGER standard conditions.</Body></Card>
+    <Heading small>Scheme screening</Heading><StatusBadge status={r.eligibility} />{r.eligibilityRules.map(rule => <Card key={rule.id}><View style={styles.row}><Icon name={rule.state === 'satisfied' ? 'check-circle-outline' : 'information-outline'} /><Heading small>{rule.title}</Heading></View><Body>{rule.state.replaceAll('_',' ')}</Body><Body muted>{rule.explanation}</Body>{rule.state !== 'satisfied' && <Body>{rule.nextAction}</Body>}</Card>)}
     <DisclaimerCard />
   </>;
 }
+function Detail({ label, value }: { label: string; value: string }) { return <View style={{ flexDirection: 'row', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}><Body muted>{label}</Body><Body>{value}</Body></View>; }

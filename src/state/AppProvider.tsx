@@ -1,16 +1,17 @@
 import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
 import * as Crypto from 'expo-crypto';
 import { AssessmentInput, Assumptions, SavedAssessment, emptyInput } from '../types/assessment';
-import { defaultAssumptions } from '../config/assumptions';
+import { defaultAssumptions, MARKET_ASSUMPTIONS } from '../config/assumptions';
 import { readLocal, writeLocal } from '../lib/storage';
 import { listAssessments, loadAssumptions, persistAssessment, removeAssessment } from '../lib/repository';
-import { calculateAssessment } from '../lib/calculations';
+import { normalizeInput } from '../lib/snapshots';
+import { calculateAssessment, updateAssessmentInput } from '../lib/calculations';
 import { demoInput } from '../lib/demo';
-import { farmSchema, projectSchema, priceSchema } from '../lib/validation';
+import { assessmentSchema } from '../lib/validation';
 import { supabase } from '../lib/supabase';
 import type { User } from '@supabase/supabase-js';
-type Draft = { input: AssessmentInput; editingId?: string; sample?: boolean; started: boolean; step: number };
-type FarmDefaults = Pick<AssessmentInput, 'farmType' | 'animalCount' | 'state' | 'manureSystem' | 'projectStartedStatus' | 'siteControl' | 'monitoringEquipment'>;
+type Draft = { input: AssessmentInput; legacySnapshot?: unknown; editingId?: string; sample?: boolean; started: boolean; step: number };
+type FarmDefaults = Pick<AssessmentInput, 'farmName' | 'farmType' | 'animalCount' | 'state' | 'postcode' | 'wasteStream' | 'manureSystem' | 'baselineAnaerobic' | 'baselineEvidence'>;
 interface AppContextValue {
   user: User | null;
   ready: boolean; bootError: string; retryBoot: () => void; welcomed: boolean; welcome: () => Promise<void>; logout: () => Promise<void>;
@@ -34,7 +35,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [records, setRecords] = useState<SavedAssessment[]>([]), [listError, setListError] = useState(''), [busy, setBusy] = useState(false);
   const [assumptions, setAssumptions] = useState(defaultAssumptions), [farmDefaults, setFarmDefaults] = useState<FarmDefaults | null>(null), [storageError, setStorageError] = useState('');
   const saving = useRef(false);
-  const setInput = useCallback((values: Partial<AssessmentInput>) => setDraft(current => ({ ...current, started: true, input: { ...current.input, ...values } })), []);
+  const setInput = useCallback((values: Partial<AssessmentInput>) => setDraft(current => ({ ...current, started: true, input: updateAssessmentInput(current.input, values) })), []);
   useEffect(() => {
     if (!supabase) return;
     let active = true, eventReceived = false;
@@ -58,7 +59,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const key = (name: string) => scope ? `${name}:account:${scope}` : name;
       const [storedDraft, storedWelcome, defaults] = await Promise.all([readLocal<Draft>(key('draft'), blankDraft()), readLocal('welcomed', false), readLocal<FarmDefaults | null>(key('farm-defaults'), null)]);
       if (!active) return;
-      setDraft(storedDraft); if (!welcomeLoaded.current) { setWelcomed(storedWelcome); welcomeLoaded.current = true; } setFarmDefaults(defaults); setLoadedScope(scope); setReady(true); setBootError('');
+      if (!('farmName' in storedDraft.input)) await writeLocal(`${key('draft')}:legacy-v1`, storedDraft);
+      setDraft({ ...storedDraft, input: normalizeInput(storedDraft.input as unknown as Record<string, unknown>), step: 'farmName' in storedDraft.input ? storedDraft.step : 1 }); if (!welcomeLoaded.current) { setWelcomed(storedWelcome); welcomeLoaded.current = true; } setFarmDefaults(defaults ? normalizeInput(defaults as unknown as Record<string, unknown>) : null); setLoadedScope(scope); setReady(true); setBootError('');
       setBusy(true);
       const config = await loadAssumptions(); if (active) setAssumptions(config);
       try { const rows = storedWelcome || scope ? await listAssessments() : []; if (active) { setRecords(rows); setListError(''); } } catch (error) { if (active) setListError(errorMessage(error)); } finally { if (active) setBusy(false); }
@@ -81,18 +83,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     },
     setInput,
     setStep: step => setDraft(current => ({ ...current, step })),
-    startNew: () => setDraft({ ...blankDraft(), started: true, input: { ...emptyInput, ...farmDefaults, monitoringEquipment: [...(farmDefaults?.monitoringEquipment ?? [])], accuPrice: assumptions.defaultAccuPrice } }),
-    exploreDemo: () => setDraft({ input: { ...demoInput, monitoringEquipment: [...demoInput.monitoringEquipment] }, sample: true, started: true, step: 3 }),
-    edit: (record, duplicate = false) => setDraft({ input: { ...record.input, monitoringEquipment: [...record.input.monitoringEquipment] }, editingId: duplicate ? undefined : record.id, sample: record.sample, started: true, step: 1 }),
+    startNew: () => setDraft({ ...blankDraft(), started: true, input: { ...emptyInput, ...farmDefaults, monitoringEquipment: [], accuPrice: assumptions.defaultAccuPrice, lowAccuPrice: Math.min(MARKET_ASSUMPTIONS.low, assumptions.defaultAccuPrice), highAccuPrice: Math.max(MARKET_ASSUMPTIONS.high, assumptions.defaultAccuPrice) } }),
+    exploreDemo: () => setDraft({ input: { ...demoInput, monitoringEquipment: [...demoInput.monitoringEquipment] }, sample: true, started: true, step: 1 }),
+    edit: (record, duplicate = false) => setDraft({ input: { ...record.input, monitoringEquipment: [...record.input.monitoringEquipment] }, editingId: duplicate ? undefined : record.id, sample: record.sample, legacySnapshot: record.legacySnapshot, started: true, step: 1 }),
     saveFarmDefaults: async values => { const current = generation.current; await writeLocal(localKey('farm-defaults'), values); if (current === generation.current) setFarmDefaults(values); },
     save: async () => {
       if (saving.current) throw new Error('A save is already in progress.');
-      if (!farmSchema.safeParse(draft.input).success || !projectSchema.safeParse(draft.input).success || !priceSchema.safeParse(draft.input.accuPrice).success) throw new Error('Complete the farm and project steps and enter a valid price before saving.');
+      if (!assessmentSchema.safeParse(draft.input).success) throw new Error('Review the farm, route and highlighted inputs before saving. Unknown technical and financial values may stay blank.');
       const currentGeneration = generation.current;
       saving.current = true; setBusy(true);
       try {
         const existing = records.find(row => row.id === draft.editingId), now = new Date().toISOString();
-        const record: SavedAssessment = { id: draft.editingId ?? Crypto.randomUUID(), createdAt: existing?.createdAt ?? now, updatedAt: now, input: draft.input, result: calculateAssessment(draft.input, assumptions), assumptions, snapshotVersion: 1, sample: draft.sample };
+        const record: SavedAssessment = { id: draft.editingId ?? Crypto.randomUUID(), createdAt: existing?.createdAt ?? now, updatedAt: now, input: draft.input, result: calculateAssessment(draft.input, assumptions), assumptions, snapshotVersion: 2, sample: draft.sample, legacySnapshot: draft.legacySnapshot ?? existing?.legacySnapshot };
         await persistAssessment(record);
         if (currentGeneration !== generation.current) throw new Error('Your account changed while saving. Return to the original account to check this assessment.');
         setRecords(rows => [record, ...rows.filter(row => row.id !== record.id)]); setDraft(current => ({ ...current, editingId: record.id }));

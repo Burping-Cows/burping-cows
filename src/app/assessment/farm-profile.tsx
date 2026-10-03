@@ -1,7 +1,4 @@
-import React from 'react';
-import { router } from 'expo-router';
-import { FarmFields, useDraftForm } from '../../components/AssessmentForm';
-import { Body, Button, Card, Screen } from '../../components/ui';
+import { AssessmentStep } from '../../components/AssessmentStep';
+import { FarmFields } from '../../components/AssessmentForm';
 import { farmSchema } from '../../lib/validation';
-import { useApp } from '../../state/AppProvider';
-export default function FarmProfile() { const app = useApp(), form = useDraftForm(farmSchema); return <Screen title="Farm profile" step={1} back><Card pale><Body muted>No stress, rough estimates are okay. We just need a few details to get started.</Body></Card><FarmFields form={form} /><Button title="Next: your project" icon="arrow-right" onPress={() => void form.handleSubmit(values => { app.setInput(values); app.setStep(2); router.push('/assessment/project'); })()} /><Body muted style={{ fontFamily: 'DM_Sans_500Medium', fontSize: 11, lineHeight: 16 }}>Progress saves automatically on this device.</Body></Screen>; }
+export default function Farm() { return <AssessmentStep title="Farm & baseline" step={1} schema={farmSchema} next="/assessment/project" Fields={FarmFields} />; }

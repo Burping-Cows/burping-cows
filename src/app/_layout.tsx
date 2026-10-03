@@ -28,11 +28,11 @@ export function Navigation() {
       <Stack.Screen name="signup" />
       <Stack.Screen name="forgot-password" />
       <Stack.Screen name="auth/callback" />
-      <Stack.Protected guard={!app.ready || app.welcomed}>
+      <Stack.Protected guard={app.welcomed}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="assessment/farm-profile" />
         <Stack.Screen name="assessment/project" />
-        <Stack.Screen name="assessment/results" />
+        <Stack.Screen name="assessment/screening" /><Stack.Screen name="assessment/technical" /><Stack.Screen name="assessment/finance" /><Stack.Screen name="assessment/results" />
         <Stack.Screen name="assessment/action-plan" />
         <Stack.Screen name="assessment-details/[id]" />
       </Stack.Protected>

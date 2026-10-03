@@ -1,22 +1,12 @@
 import { z } from 'zod';
-import { farmTypes, states, manureSystems, projects } from '../types/assessment';
-import { anaerobicSystems } from './eligibility';
-const nonnegative = z.number().finite().min(0, 'Enter zero or a positive number');
-export const farmSchema = z.object({
-  farmType: z.enum(farmTypes, { message: 'Choose a farm type' }), animalCount: z.number({ message: 'Enter the number of animals.' }).int('Use a whole number').min(1).max(10000000),
-  state: z.enum(states, { message: 'Choose a state' }), manureSystem: z.enum(manureSystems, { message: 'Choose a manure system' }),
-  projectStartedStatus: z.enum(['No', 'Planning only', 'Yes'], { message: 'Choose a project status' }), siteControl: z.enum(['Yes', 'No', 'Unsure'], { message: 'Choose a site-control answer' }),
-  monitoringEquipment: z.array(z.string()).min(1, 'Select equipment, None, or Unsure'),
-});
-export const projectSchema = z.object({
-  farmType: z.string(), animalCount: z.number().optional(), manureSystem: z.string(),
-  proposedProject: z.enum(projects, { message: 'Choose a proposed project' }), methaneInputType: z.enum(['tonnes', 'm3', 'estimator']),
-  methaneTonnes: nonnegative.optional(), methaneM3: nonnegative.optional(), captureEfficiency: nonnegative.max(100, 'Maximum 100%'),
-  implementationCost: nonnegative.optional(), annualOperatingCost: nonnegative.optional(), projectLifetimeYears: z.number({ message: 'Enter a project lifetime' }).int().min(1).max(100),
-  monitoringMaturity: z.enum(['None', 'Basic records', 'Some sensors', 'Comprehensive monitoring']), calibrationRecords: z.boolean(), qaPlan: z.boolean(),
-}).superRefine((data, ctx) => {
-  const field = data.methaneInputType === 'tonnes' ? 'methaneTonnes' : 'methaneM3';
-  if (data.methaneInputType !== 'estimator' && data[field] === undefined) ctx.addIssue({ code: 'custom', path: [field], message: 'Enter an annual methane amount' });
-  if (data.methaneInputType === 'estimator' && !anaerobicSystems.includes(data.manureSystem)) ctx.addIssue({ code: 'custom', path: ['methaneInputType'], message: 'This estimator needs an anaerobic system. Enter a measured methane amount instead.' });
-});
-export const priceSchema = nonnegative.max(100000, 'Enter a price below A$100,000');
+import { farmTypes, states, manureSystems, projects, projectStages, evidenceOptions, inputSources } from '../types/assessment';
+const amount = z.number().finite().min(0, 'Enter zero or a positive number').optional();
+const fraction = z.number().finite().min(0).max(1, 'Use a fraction from 0 to 1').optional();
+const answer = z.enum(['yes', 'no', 'unknown']);
+export const priceSchema = z.number().finite().min(0).max(100000);
+export const farmSchema = z.object({ farmName: z.string().max(150), farmType: z.enum(farmTypes), state: z.enum(states), postcode: z.string().refine(s => !s || /^\d{4}$/.test(s), 'Use a four-digit Australian postcode or leave blank'), animalCount: z.number().finite().int().min(0).max(10000000).optional(), wasteStream: z.enum(['Liquid effluent', 'Solid manure', 'Other', 'Unsure']), manureSystem: z.enum(manureSystems), baselineAnaerobic: answer, baselineEvidence: z.enum(evidenceOptions) });
+export const projectSchema = z.object({ proposedProject: z.enum(projects), projectStage: z.enum(projectStages), implementationDate: z.string().refine(s => !s || (/^\d{4}-\d{2}-\d{2}$/.test(s) && !Number.isNaN(Date.parse(s)) && new Date(s).toISOString().slice(0,10) === s), 'Use a valid date: YYYY-MM-DD'), flareType: z.enum(['Open flare', 'Enclosed flare', 'Unsure', '']) });
+export const screeningSchema = z.object({ legallyRequired: answer, normalBusinessPractice: answer, siteControl: answer, accuRights: answer, governmentFunding: answer, fundingProgram: z.string().max(150), fundingAmount: amount, fundingActivity: z.string().max(500), permits: answer, facilityDescription: answer });
+export const technicalSchema = z.object({ periodMonths: z.number().finite().min(1).max(120).optional(), biogasVolumeM3: amount, methaneFraction: fraction, destructionEfficiency: fraction, flareOperationFraction: fraction, projectEmissionsTCO2e: amount, biogasSource: z.enum(inputSources), methaneSource: z.enum(inputSources), destructionSource: z.enum(inputSources), operationSource: z.enum(inputSources), emissionsSource: z.enum(inputSources), monitoringEquipment: z.array(z.string()), calibrationRecords: answer, qaPlan: answer, operationalRecords: answer, energyRecords: answer, auditPreparation: answer });
+export const financeSchema = z.object({ implementationCost: amount, developmentCost: amount, annualOperatingCost: amount, annualComplianceCost: amount, annualEnergySavings: amount, otherRevenue: amount, annualFees: amount, projectLifetimeYears: z.number().int().min(1).max(100).optional(), discountRate: z.number().finite().min(0).max(1).optional(), accuPrice: priceSchema, lowAccuPrice: priceSchema, highAccuPrice: priceSchema }).refine(v => v.lowAccuPrice <= v.accuPrice && v.accuPrice <= v.highAccuPrice, { path: ['lowAccuPrice'], message: 'Use low price ≤ base price ≤ high price.' });
+export const assessmentSchema = farmSchema.and(projectSchema).and(screeningSchema).and(technicalSchema).and(financeSchema);
