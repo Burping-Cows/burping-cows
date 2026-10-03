@@ -39,10 +39,39 @@ npm run build
 npx wrangler pages deploy dist --project-name burping-cows --branch codex/landing-page
 ```
 
-Pushing the GitHub branch does not automatically deploy this Direct Upload
-project. Alternatively, create a separate Git-connected Pages project with the
-repository root, build command **`npm run build`**, and output directory **`dist`**.
-No environment variables or Functions are needed.
+### Automatic deployment from GitHub
+
+`.github/workflows/deploy-landing.yml` builds and deploys every push to
+`codex/landing-page` to the existing **https://burping-cows.pages.dev** address.
+It uses Node 24, `npm ci`, `npm run build`, and Wrangler to upload `dist/`.
+Other branches and pull requests do not publish this site.
+
+**One-time activation:** add a repository Actions secret named
+**`CLOUDFLARE_API_TOKEN`**. Without it the workflow stops with a clear setup error;
+automatic publishing is not active yet.
+
+1. In [Cloudflare Account API tokens](https://dash.cloudflare.com/a6d8740a330b9414a5156037b16d70d6/api-tokens),
+   create a custom token named **Burping Cows GitHub deployment**.
+2. Grant only **Account → Cloudflare Pages → Edit**, restricted to the account
+   hosting this project. Do not grant billing or other product permissions.
+3. Save its value as `CLOUDFLARE_API_TOKEN` in
+   [this repository's Actions secrets](https://github.com/Burping-Cows/burping-cows/settings/secrets/actions).
+   Never commit the token or paste it into a chat.
+4. After saving the secret, re-run the failed **Deploy landing page** run in
+   [GitHub Actions](https://github.com/Burping-Cows/burping-cows/actions/workflows/deploy-landing.yml),
+   or push another commit to `codex/landing-page`.
+
+The workflow uses the standard GitHub-hosted Linux runner for this public
+repository and static Cloudflare Pages hosting. It does not configure paid
+services, billing, Functions, or a GitHub-to-Cloudflare Git installation.
+The account ID in the workflow is an identifier, not a credential. The token is
+supplied only to the credential check and official deployment action.
+
+Cloudflare's direct Git connection was attempted but rejected because its Git
+installation is not working. The connected MCP can deploy Pages but cannot
+create account API tokens. GitHub Actions keeps the existing project and URL.
+
+Official reference: [Cloudflare's Direct Upload CI guide](https://developers.cloudflare.com/pages/how-to/use-direct-upload-with-continuous-integration/).
 
 Use the build-time `NODE_VERSION` setting if necessary to select Node 22.13+
 or Node 24. Do not configure the Expo `export:web` command for this landing page.
