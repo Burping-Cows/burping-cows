@@ -7,8 +7,21 @@ import { listAssessments, persistAssessment, removeAssessment, remoteConfigSchem
 const local = vi.hoisted(() => new Map<string, unknown>());
 vi.mock('../src/lib/supabase', () => ({ supabase: null, getOwnerId: vi.fn() }));
 vi.mock('../src/lib/storage', () => ({ readLocal: async (key: string, fallback: unknown) => local.get(key) ?? fallback, writeLocal: async (key: string, value: unknown) => { local.set(key, value); }, getDeviceId: async () => 'device' }));
-const record = (): SavedAssessment => ({ id: 'abc', createdAt: '2026-10-02T00:00:00Z', updatedAt: '2026-10-02T00:00:00Z', input: demoInput, result: calculateAssessment(demoInput), assumptions: defaultAssumptions, snapshotVersion: 1 });
+const record = (): SavedAssessment => ({ id: 'abc', createdAt: '2026-10-02T00:00:00Z', updatedAt: '2026-10-02T00:00:00Z', input: demoInput, result: calculateAssessment(demoInput), assumptions: defaultAssumptions, snapshotVersion: 2 });
 beforeEach(() => local.clear());
 it('saves, edits, lists, and deletes a local assessment without duplicates', async () => { await persistAssessment(record()); await persistAssessment({ ...record(), input: { ...demoInput, animalCount: 100 } }); expect(await listAssessments()).toHaveLength(1); expect((await listAssessments())[0].input.animalCount).toBe(100); await removeAssessment('abc'); expect(await listAssessments()).toEqual([]); });
-it('maps persistence inputs and preserves the calculation snapshot', () => { const r = record(), row = toDatabase(r, 'owner', 'device'); expect(row).toMatchObject({ owner_id: 'owner', device_id: 'device', annual_operating_cost: null, estimated_accus: 2296, readiness_score: 60, calibration_records: false }); expect(row.calculation_snapshot).toEqual(r); });
-it('rejects malformed server configuration instead of using invalid factors', () => { expect(remoteConfigSchema.safeParse({ default_accu_price: -1 }).success).toBe(false); expect(remoteConfigSchema.safeParse({ default_accu_price: 37, methodology_note: 'demo', compliance_ranges: { Low: [70, 40], Medium: [70, 120], High: [120, 200] } }).success).toBe(false); });
+it('maps persistence inputs and preserves the calculation snapshot', () => { const r = record(), row = toDatabase(r, 'owner', 'device'); expect(row).toMatchObject({ owner_id: 'owner', device_id: 'device', name: 'Green Valley Dairy', project_route: 'Capture and flare methane' }); expect(row.calculation_snapshot).toEqual(r); });
+it('rejects malformed server configuration instead of using invalid factors', () => { expect(remoteConfigSchema.safeParse({ default_accu_price: -1 }).success).toBe(false); expect(remoteConfigSchema.safeParse({ default_accu_price: 100001, methodology_note: 'demo' }).success).toBe(false); });
+it('reloads incomplete snapshots with unknown amounts, not fabricated zero results', async () => {
+  const input = { ...demoInput, biogasVolumeM3: undefined, annualFees: undefined };
+  const incomplete = { ...record(), input, result: calculateAssessment(input) };
+  await persistAssessment(incomplete);
+  const saved = (await listAssessments())[0];
+  expect(saved.result.technical.annualNetAbatement).toBeNull();
+  expect(saved.result.finance.base).toBeNull();
+  expect(saved.input.biogasVolumeM3).toBeUndefined();
+  const row = toDatabase(saved, 'owner', 'device');
+  expect(row.technical_inputs.biogasVolumeM3).toBeNull();
+  expect(row.financial_inputs.annualFees).toBeNull();
+  expect(row.scheme_answers.siteControl).toBe('yes');
+});

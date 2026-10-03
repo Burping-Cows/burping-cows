@@ -6,7 +6,7 @@ export const COP31_SOURCE_URL =
   "https://minister.dcceew.gov.au/bowen/transcripts/press-conference-un-climate-meetings-sb64-bonn-germany";
 
 // Snapshot computed with the latest app's demoInput + calculateAssessment.
-// Source commit: 761f1f1bac4cafcd4c16e67f5df4bb3b809cbad0.
+// Source commit: 32e61a0.
 // Recompute when the app's calculation engine or demonstration inputs change.
 export const DEMO = {
   farm: "Green Valley Dairy",

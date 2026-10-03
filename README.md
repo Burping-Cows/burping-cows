@@ -1,93 +1,112 @@
 # Burping Cows
 
+From methane to money, minus the mystery.
+
+A React Native / Expo / TypeScript hackathon app for preliminary Australian dairy and piggery animal-effluent project assessment. It supports one complete numerical pathway: captured biogas destroyed by an open or enclosed flare. Other routes receive screening and preparation guidance with no invented abatement figures.
+
 ## Landing page
 
 The responsive React + TypeScript + Vite landing page lives in `landing/` and
 reuses the app's branding. Run `npm install` and `npm run dev` to preview it;
 `npm run build` creates a static `dist/` directory for Cloudflare Pages.
 See [DEPLOY.md](DEPLOY.md) for deployment and the assessment app URL setting.
-The existing Expo application and commands below remain available.
-
-A weekend MVP for Australian dairy and piggery farmers exploring methane-to-ACCU feasibility. Built with Expo SDK 57, React Native, TypeScript, Expo Router, React Hook Form, Zod, and Supabase. The green visual direction follows the supplied reference, with original reusable SVG farm illustrations. The supplied cow-with-methane-puff logo in `assets/branding/cow-methane-logo.png` is used on the welcome, dashboard, and About screens, and as the app icon and web favicon. Native icon changes require rebuilding the app; Expo Go retains its own launcher icon.
+The Expo application and commands below remain available.
 
 ## Run locally
 
-Use Node.js 22.13+ (Node 24 LTS recommended) and npm.
-
 ```sh
 npm install
-npx expo start
+npm start
 ```
 
-Press `w` for web, `i` for an available iOS simulator, or `a` for an Android emulator. For a physical device, use an Expo Go version supporting SDK 57 or create an SDK-compatible development build. `npm run web`, `npm run ios`, and `npm run android` are also available.
+Use `npm run ios`, `npm run android` or `npm run web` to launch your chosen platform. The project uses Expo SDK 57, Expo Router, React Hook Form, Zod and Supabase. The current logo is `assets/branding/green-in-app-logo.png`; the interface uses cream backgrounds and green accents.
 
-Without Supabase credentials the app runs fully in **local demo mode**. Drafts, farm defaults, onboarding state, device identity, and saved assessments persist in AsyncStorage (browser storage on web). The dashboard starts empty. **Explore demo farm** loads the supplied example into a labelled draft; saving it creates a labelled sample assessment.
+With no Supabase environment variables, the app runs in local demo mode and saves assessments on the device. Local drafts persist across restarts. Existing login/signup/logout flows remain available when Supabase is configured.
+
+## Assessment journey
+
+Welcome → Farm & Baseline → Project Route → Scheme Screening → Technical Estimate → Financial Scenario → Results → Action Plan → Saved assessments.
+
+Choose **Use demo farm** to populate the deterministic Green Valley Dairy scenario. You can view, edit, duplicate and delete saved assessments. Profile includes farm defaults and clearly labelled future integration previews for myMLA/NLIS, AgriWebb and CSV; these are not connected services.
+
+Results keep four dimensions separate:
+
+- Eligibility: likely compatible, needs review, potential route issue or outside MVP.
+- Preparation: phase progress and evidence tasks, including visible high-priority gaps.
+- Viability: insufficient data, potentially attractive, sensitive to assumptions or unfavorable.
+- Calculation: incomplete, projected or measured and unverified. The app does not automatically claim independent review.
+
+Unknown answers are stored as `unknown`, never false. Blank numerical fields are unknown; explicitly entered zero remains zero. Animal count is descriptive and never produces ACCUs. Missing gas, operation or project-emissions data keeps abatement incomplete; missing costs keeps viability unassessed. Route changes clear route-dependent technical and financial inputs.
+
+## Calculation and assumptions
+
+The pure engine lives in `src/lib/flare.ts`; eligibility, readiness, finance and orchestration live in separate TypeScript modules. Constants, metadata and market assumptions live in `src/config/assumptions.ts`.
+
+For a stated period, the app applies the explicitly entered flare-operation fraction once to captured biogas, then calculates:
+
+```text
+Destroyed methane m³ = operating biogas m³ × methane fraction × destruction efficiency
+Methane mass tonnes = destroyed methane m³ × 0.0006784
+Gross abatement tCO₂-e = methane mass × 28
+Raw net = gross abatement − project emissions for the same period
+Net abatement = max(0, raw net)
+Annual equivalent = net abatement × 12 / period months
+Whole annual planning units = floor(annual equivalent)
+```
+
+All calculations retain decimal precision; rounding happens only for display. The raw negative diagnostic remains visible when project emissions exceed gross abatement. Composition and destruction planning defaults require an explicit button press and are labelled illustrative assumptions. Gas quantity, operation and emissions are never inferred.
+
+Density source: [DCCEEW National Inventory Report 2022, Volume 1](https://www.dcceew.gov.au/sites/default/files/documents/national-inventory-report-2022-volume-1.pdf). Route context: [CER Animal Effluent Management method](https://cer.gov.au/schemes/australian-carbon-credit-unit-scheme/accu-scheme-methods/animal-effluent-management-method) and [CER method supplement](https://cer.gov.au/document/supplement-carbon-credits-carbon-farming-initiative-animal-effluent-management-methodology). This is a simplified planning calculation, not the complete regulatory method or an official CER calculator. Baseline, device, monitoring and reporting requirements need project-specific assessment.
+
+Financial scenarios use the unrounded annual equivalent multiplied by editable low/base/high prices. Annual operating cash includes carbon revenue, energy savings and other revenue, less operations, compliance and fees. Payback uses CAPEX plus development cost and only exists for positive annual operating cash. NPV discounts annual cash flows at year end over the entered horizon.
+
+Visible financial assumptions: steady annual operation, constant prices and costs, no tax, financing, inflation or residual asset value, and immediate annual ACCU sale. There is no live market feed. Base NPV above zero with low NPV at least zero is potentially attractive; a negative low NPV is sensitive; nonpositive base NPV or cash flow is unfavorable.
+
+## Deterministic demo
+
+Green Valley Dairy: Dairy, NSW, 500 animals, liquid effluent and anaerobic pond baseline, planning / obtaining quotes, enclosed flare. Biogas is an engineering estimate of 100,000 m³ over 12 months; methane fraction 0.60 and destruction efficiency 0.98 are disclosed planning defaults. Operation fraction 1 and project emissions of 20 tCO₂-e are explicit demo assumptions.
+
+CAPEX A$150,000; development A$0; annual operations A$10,000 plus compliance A$5,000; energy savings, other revenue and fees explicitly zero. Base price A$35, low A$32, high A$42; horizon 15 years and discount 8%.
+
+| Output | Expected value |
+| --- | ---: |
+| Methane destroyed | 58,800 m³ |
+| Methane mass | 39.88992 t CH₄ |
+| Gross abatement | 1,116.91776 tCO₂-e |
+| Net annual abatement | 1,096.91776 tCO₂-e |
+| Whole planning units | 1,096 |
+| Gross annual carbon value | A$38,392.1216 |
+| Annual operating cash | A$23,392.1216 |
+| Simple payback | approximately 6.4124 years |
+| NPV | approximately A$50,224 |
 
 ## Supabase setup
 
-1. Create a Supabase development project.
-2. Enable **Authentication → Sign In / Providers → Anonymous Sign-Ins**. No login screen is presented.
-3. Run `supabase/migrations/202610020001_initial.sql` in the SQL editor of the fresh project, or apply it through the Supabase CLI with `supabase db push` after linking the project. The migration creates tables, indexes, constraints, RLS policies, timestamp handling, and default app configuration.
-4. Copy `.env.example` to `.env` and supply the project URL and public anon key:
+Copy `.env.example` to `.env` and configure your own Supabase URL and public key. Never put a service-role key in the client.
 
-```dotenv
-EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-EXPO_PUBLIC_SUPABASE_ANON_KEY=your-public-anon-key
-```
+Apply migrations in order to your intended Supabase project:
 
-5. Restart Expo with `npx expo start --clear`.
+1. `supabase/migrations/202610020001_initial.sql` creates assessments, app configuration, ownership and RLS.
+2. `supabase/migrations/202610030002_flare_assessments.sql` adds the new input/result JSON fields and widens farm/state/count validation without removing old rows or policies.
 
-Never put a service-role key in the client. Public environment variables are bundled into the app. Saved records are owned by the silent anonymous Supabase user and protected by `auth.uid() = owner_id` RLS policies. Every record query also filters the persistent device UUID. Device ID is metadata, not authentication. Anonymous accounts use Supabase’s authenticated database role.
+For an existing project, apply only migrations not already recorded. The new migration is required before cloud saving this updated model. It has not been applied to a remote database during this implementation.
 
-Drafts and profile defaults stay local; only **Save assessment** writes a cloud assessment. With configured credentials, network/authentication/database failures display an error and retain the draft. There is no silent fallback to a successful local cloud save. Refresh retries record loading. Local demo assessments are not automatically uploaded when credentials are added; an existing local draft can be explicitly saved to the configured project.
+Enable Supabase email authentication and configure the `burpingcows://auth/callback` redirect for native auth callbacks. Configure the corresponding browser origin for web callbacks. Anonymous auth must be enabled if guests should save remotely. Permanent accounts use account-scoped drafts; the repository also filters by device ID and RLS enforces authenticated ownership. Failed cloud saves show an error and retain the draft; they do not silently claim success.
 
-`app_config` is publicly readable and client read-only. Default price, methodology note, and compliance ranges are validated before use. Invalid/unavailable configuration uses bundled defaults. Saved snapshots retain the actual configuration used.
+Each saved snapshot stores its input, four results, action plan, assumptions, version and timestamps. Version-two snapshots reload without recalculation. Legacy snapshots are retained in `legacySnapshot` while the editable input is upgraded for review; old herd-based estimates are never translated into new biogas estimates. Legacy drafts are backed up before normalization. Editing or duplicating a legacy record preserves its archived original evidence.
 
-## Calculations and product rules
-
-All business logic is in `src/lib`; configurable demonstration assumptions are in `src/config/assumptions.ts`.
-
-- GWP: **28**; methane density: **0.716 kg/m³**; initial ACCU price assumption: **A$37**, editable on results. No live price feed.
-- Supplied tonnes: multiply by 28. Supplied volume: multiply by 0.716, divide by 1,000, then multiply by 28. Direct inputs already represent methane captured/reduced and are not multiplied by capture efficiency again.
-- Animal estimator: dairy **25 kg CH₄/animal/year**, piggery **12 kg**, multiplied by animals and capture efficiency. Only anaerobic baselines support this demonstration estimator. It excludes enteric methane.
-- **These factors are simplified demonstration assumptions and are NOT official Clean Energy Regulator methodology values.**
-- Estimated ACCUs = floor(CO₂-e). Gross annual value = estimated ACCUs × price; cumulative five-year value = annual gross × 5, with constant volume and price. The chart illustrates cumulative gross value, not a forecast.
-- Indicative gross-revenue payback = (implementation cost + midpoint compliance cost) ÷ annual gross value. Missing implementation cost or zero gross value gives “Not available.” Operating costs are shown separately and excluded, along with financing, tax, energy revenue, deductions, and method-specific issuance rules.
-- Readiness weights: pathway 20, timing 15, site control 10, flow monitoring 15, gas monitoring 15, electricity/fuel evidence 10, QA plan **and** calibration records 10, positive implementation cost 5. Unknown/partial evidence earns no points. “Strongly prepared” is not audit certification.
-- Explicitly unsupported systems, absent site control, or effluent improvement alone are Unlikely under this pathway. Existing capture infrastructure, started projects, missing/uncertain information, and unknown projects require review. Planning only counts as not started. These are demonstration rules, not regulatory decisions.
-- High burden: started projects, biomethane, or no meaningful monitoring and no records. Low: flow and gas monitoring, energy/fuel evidence, QA and calibration evidence, and confirmed site control. Remaining cases are Medium. These rules intentionally preserve the demo’s Medium category despite missing sensors.
-- Indicative compliance ranges: Low **A$40k–70k**; Medium **A$70k–120k**; High **A$120k–200k+**. Midpoints: A$55k/A$95k/A$160k; the High range has an open upper tail.
-
-The optional sample has 450 dairy animals in VIC, 82 tonnes CH₄/year, a covered-pond project, A$180,000 implementation cost, 10-year illustrative lifetime, confirmed site control, electricity/fuel evidence, and no flow/gas sensors or QA/calibration evidence. Operating cost is unspecified. Expected results: **2,296 tCO₂-e / 2,296 ACCUs / A$84,952 per year / A$424,760 over five years / 60% readiness / Medium burden / ~3.2-year gross payback**.
-
-## Checks
+## Verification
 
 ```sh
+npm test
 npm run typecheck
 npm run lint
-npm test
-npx expo install --check
 npm run export:web
+npx expo export --platform ios --output-dir /tmp/burping-cows-ios-export
 ```
 
-Tests cover calculations, validation, eligibility precedence, readiness evidence, compliance, local persistence, snapshot mapping, draft restoration, duplication, and failure handling.
+Tests cover the F01 fixture, invalid and missing inputs, explicit zero, operation applied once, annualisation, eligibility precedence, unknown answers, unsupported routes, route invalidation, finance classifications, phase progress totals, snapshot preservation, incomplete save/reload, draft resume and account isolation.
 
-To verify deployed row-level security, use a **disposable development Supabase project** with the migration applied and `.env` configured:
+For a manual check, launch the app, select Use demo farm, continue through the five input screens, inspect the four independent results and action plan, save, restart and reload. Repeat with blank gas/cost data and verify that numerical outputs remain incomplete. Integration previews must remain labelled future features.
 
-```sh
-node --env-file=.env scripts/verify-supabase.mjs
-```
-
-This creates two anonymous accounts and cleans up its test assessment row. It checks ownership, cross-user reads/updates/deletes, forged ownership, owner transfer, unauthenticated access, and read-only configuration. It does not delete the anonymous auth users; remove them through Supabase admin tooling if desired. Live cloud security validation requires actual credentials and is separate from the local test suite.
-
-Manual acceptance flow: welcome → empty home → farm profile → project → results → change price → action plan → save → saved details → edit → duplicate → confirmed delete. Also check invalid/zero inputs, unsupported estimator baselines, draft restoration after reload, loading/error recovery, mobile keyboard behavior, and accessibility text sizing.
-
-## Known limitations
-
-This MVP does not submit official ACCU applications, replace auditors, certify compliance, integrate with CER, calculate official net abatement, provide market prices, or guarantee eligibility or credits. No authentication UI, payments, IoT, reports, admin panel, or complex AI.
-
-No cross-device account recovery: clearing browser/app storage, uninstalling, or losing the anonymous session can make cloud records inaccessible. Anonymous sign-in is safer than device-ID-only filtering but still needs abuse controls and account recovery design before production. Supabase’s anonymous sign-in rate limits apply; configure suitable anti-abuse measures before a public launch. Records use last-write-wins editing and are not a live multi-user workflow.
-
-Drafts save locally as fields change; saved assessment writes are explicit. One draft is active at a time; starting another replaces it. Delete has an in-app confirmation and no undo. The five-year illustration remains five years even if the entered lifetime is shorter; lifetime affects the verdict and is displayed beside the chart.
-
-**Indicative estimate only.** Actual ACCU eligibility, calculation, issuance and project requirements depend on the applicable Clean Energy Regulator method and professional verification. Burping Cows does not replace a registered auditor, financial adviser, legal adviser, or carbon project developer.
+Burping Cows provides preliminary decision support only. Results are indicative and do not constitute Clean Energy Regulator approval, professional advice, audit verification or a guarantee of Australian Carbon Credit Units.

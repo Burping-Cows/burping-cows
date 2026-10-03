@@ -48,7 +48,7 @@ does not claim to perform a real assessment.
 
 `DEMO` in `landing/src/config.ts` is a verified snapshot of the latest app’s
 `demoInput` and `calculateAssessment` at commit
-`761f1f1bac4cafcd4c16e67f5df4bb3b809cbad0`. The example uses Green Valley Dairy
+`32e61a0`. The example uses Green Valley Dairy
 (500 dairy animals in NSW, liquid effluent, enclosed capture-and-flare route):
 
 - Net abatement: **1,096.91776 t CO₂-e/year**, displayed as **1,096.92**.
