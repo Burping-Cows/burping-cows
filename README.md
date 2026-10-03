@@ -18,7 +18,7 @@ Without Supabase credentials the app runs fully in **local demo mode**. Drafts, 
 ## Supabase setup
 
 1. Create a Supabase development project.
-2. Enable **Authentication → Sign In / Providers → Anonymous Sign-Ins**. No login screen is presented.
+2. Enable **Authentication → Sign In / Providers → Email** for account login/signup, and **Anonymous Sign-Ins** for guest access. Keep email confirmation enabled for account signup.
 3. Run `supabase/migrations/202610020001_initial.sql` in the SQL editor of the fresh project, or apply it through the Supabase CLI with `supabase db push` after linking the project. The migration creates tables, indexes, constraints, RLS policies, timestamp handling, and default app configuration.
 4. Copy `.env.example` to `.env` and supply the project URL and public anon key:
 
@@ -29,11 +29,21 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=your-public-anon-key
 
 5. Restart Expo with `npx expo start --clear`.
 
-Never put a service-role key in the client. Public environment variables are bundled into the app. Saved records are owned by the silent anonymous Supabase user and protected by `auth.uid() = owner_id` RLS policies. Every record query also filters the persistent device UUID. Device ID is metadata, not authentication. Anonymous accounts use Supabase’s authenticated database role.
+Never put a service-role key in the client. Public environment variables are bundled into the app. Saved records are owned by the signed-in Supabase user (email/password account or guest session) and protected by `auth.uid() = owner_id` RLS policies. Every record query also filters the persistent device UUID. Device ID is metadata, not authentication. Anonymous accounts use Supabase’s authenticated database role.
 
 Drafts and profile defaults stay local; only **Save assessment** writes a cloud assessment. With configured credentials, network/authentication/database failures display an error and retain the draft. There is no silent fallback to a successful local cloud save. Refresh retries record loading. Local demo assessments are not automatically uploaded when credentials are added; an existing local draft can be explicitly saved to the configured project.
 
 `app_config` is publicly readable and client read-only. Default price, methodology note, and compliance ranges are validated before use. Invalid/unavailable configuration uses bundled defaults. Saved snapshots retain the actual configuration used.
+
+## Login, signup, and email links
+
+Onboarding and Profile link to `/login` and `/signup`. These screens use Supabase email/password authentication, show validation and server errors, and handle signup that requires email confirmation. `/forgot-password` sends a recovery link; `/auth/callback` accepts confirmation/recovery sessions and lets the user set a new password. Passwords are never saved in app storage. Supabase persists the session using its existing storage adapter.
+
+Accounts require the `.env` credentials above. Without them, the forms clearly show local demo mode and disable account submission; guest exploration still works. This checkout contains no live Supabase credentials, so live signup/email delivery must be verified against your project.
+
+In **Authentication → URL Configuration**, allow `burping-cows://auth/callback` and `burping-cows://auth/callback?intent=recovery` for native development/production builds. For Expo Go, allow the exact callback URL produced by `Linking.createURL('/auth/callback')` (including `/--/`), with the recovery query variant. For web, allow your deployed `/auth/callback` URL and its recovery query variant; add localhost equivalents during development. Configure your Site URL and SMTP/email delivery. The default confirmation and recovery templates must retain their `{{ .ConfirmationURL }}` links. See [Supabase mobile deep linking](https://supabase.com/docs/guides/auth/native-mobile-deep-linking) and [password authentication](https://supabase.com/docs/guides/auth/passwords).
+
+Account drafts and farm defaults are stored locally under the account ID. Logging out signs out the current permanent account, hides its cached assessments, and returns to onboarding. Guest logout returns to onboarding while preserving the anonymous session and saved work on that device. Guest assessments are separate from account assessments; signup/login does not migrate guest cloud records. Create an account before saving work you want associated with it.
 
 ## Calculations and product rules
 
@@ -76,9 +86,9 @@ Manual acceptance flow: welcome → empty home → farm profile → project → 
 
 ## Known limitations
 
-This MVP does not submit official ACCU applications, replace auditors, certify compliance, integrate with CER, calculate official net abatement, provide market prices, or guarantee eligibility or credits. No authentication UI, payments, IoT, reports, admin panel, or complex AI.
+This MVP does not submit official ACCU applications, replace auditors, certify compliance, integrate with CER, calculate official net abatement, provide market prices, or guarantee eligibility or credits. No payments, IoT, reports, admin panel, or complex AI.
 
-No cross-device account recovery: clearing browser/app storage, uninstalling, or losing the anonymous session can make cloud records inaccessible. Anonymous sign-in is safer than device-ID-only filtering but still needs abuse controls and account recovery design before production. Supabase’s anonymous sign-in rate limits apply; configure suitable anti-abuse measures before a public launch. Records use last-write-wins editing and are not a live multi-user workflow.
+Guest accounts have no recovery: clearing browser/app storage, uninstalling, or losing the anonymous session can make guest cloud records inaccessible. Email/password accounts support login and password recovery. Assessment queries remain scoped to the current device as well as account ownership. Anonymous sign-in is safer than device-ID-only filtering but still needs abuse controls and account recovery design before production. Supabase’s anonymous sign-in rate limits apply; configure suitable anti-abuse measures before a public launch. Records use last-write-wins editing and are not a live multi-user workflow.
 
 Drafts save locally as fields change; saved assessment writes are explicit. One draft is active at a time; starting another replaces it. Delete has an in-app confirmation and no undo. The five-year illustration remains five years even if the entered lifetime is shorter; lifetime affects the verdict and is displayed beside the chart.
 

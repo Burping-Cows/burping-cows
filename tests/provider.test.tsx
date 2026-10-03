@@ -8,6 +8,7 @@ const mocks = vi.hoisted(() => ({ store: new Map<string, unknown>(), save: vi.fn
 vi.mock('expo-crypto', () => ({ randomUUID: () => `uuid-${++mocks.id}` }));
 vi.mock('../src/lib/storage', () => ({ readLocal: async (key: string, fallback: unknown) => mocks.store.get(key) ?? fallback, writeLocal: async (key: string, value: unknown) => { mocks.store.set(key, value); } }));
 vi.mock('../src/lib/repository', () => ({ listAssessments: async () => [], loadAssumptions: async () => defaultAssumptions, persistAssessment: mocks.save, removeAssessment: mocks.remove }));
+vi.mock('../src/lib/supabase', () => ({ supabase: null }));
 let app: ReturnType<typeof useApp>, renderer: ReactTestRenderer;
 function Probe() { const value = useApp(); React.useEffect(() => { app = value; }, [value]); return null; }
 async function mount() { await act(async () => { renderer = create(<AppProvider><Probe /></AppProvider>); }); await vi.waitFor(() => expect(app.ready).toBe(true)); }
