@@ -108,6 +108,8 @@ instructions. The example assessment remains available at `#demo`.
 
 The landing-page example and selected checklist tasks follow the current app’s
 results. Recompute this snapshot when the app’s inputs or engine change.
+The latest app commit, `07b4118`, was checked during the layout review; its
+save-and-exit changes do not change these calculation inputs or results.
 The interactive price assumption changes only illustrative gross carbon value;
 it uses the unrounded annual equivalent and is not a market feed or net-profit
 estimate. It does not change the fixed demo’s financial verdict.
@@ -123,6 +125,12 @@ Commission's Tiwi Island credit purchase. Sources were checked on 3 October
 not annual output. The other projects use different methods from manure methane.
 These examples are not customers, endorsements, farm-return comparisons or live
 price data. The page does not claim to arrange sales or secure buyers.
+
+Market headings and examples share two aligned columns on desktop and stack
+into one reading column on phones. The third commentary column was removed.
+Product, demo and market qualifications are consolidated in the footer
+disclaimer; local demo labels, price assumptions and gross-before-costs labels
+remain beside the results.
 
 ## Branding
 

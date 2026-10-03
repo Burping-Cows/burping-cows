@@ -88,10 +88,6 @@ function Hero() {
             How ACCUs work
           </a>
         </div>
-        <p className="micro trust-line">
-          <Icon name="shield" /> Indicative pre-feasibility only — not an
-          official ACCU assessment.
-        </p>
       </div>
       <div className="hero-visual">
         <div className="farm-frame">
@@ -157,9 +153,6 @@ function Hero() {
             <a href="#demo">Explore example</a>
           </div>
         </div>
-        <span className="visual-footnote">
-          Illustrative values. A starting point, not a promise.
-        </span>
       </div>
     </section>
   );
@@ -273,18 +266,14 @@ function AccuExplainer() {
             </li>
           ))}
         </ol>
-        <div className="guidance-note">
-          <Icon name="shield" />
-          <p>
-            Actual ACCUs are only issued to registered projects that satisfy
-            applicable Clean Energy Regulator requirements. An estimate from
-            Burping Cows does not automatically become a credit.{" "}
-            <a href={ACCU_SCHEME_URL} target="_blank" rel="noreferrer">
-              Read the official ACCU Scheme guidance
-            </a>
-            .
-          </p>
-        </div>
+        <a
+          className="guidance-link"
+          href={ACCU_SCHEME_URL}
+          target="_blank"
+          rel="noreferrer"
+        >
+          Read the official ACCU Scheme guidance <Icon name="arrow" />
+        </a>
       </div>
     </section>
   );
@@ -301,8 +290,8 @@ function MarketExamples() {
         <div className="market-heading">
           <h2 id="market-title">Carbon credits already have buyers.</h2>
           <p>
-            Public examples show that eligible projects can reach real buyers.
-            The first question is what could work on your farm.
+            Public examples of carbon credit sales, long-term agreements and
+            government purchases.
           </p>
         </div>
         <div className="market-examples">
@@ -316,8 +305,8 @@ function MarketExamples() {
             <div>
               <p>
                 This registered project captures and combusts methane from
-                piggery manure. The regulator records 97,000 tonnes of abatement
-                sold to the Commonwealth under a completed contract.
+                piggery manure. The regulator records a total of 97,000 tonnes
+                of abatement sold to the Commonwealth under a completed contract.
               </p>
               <a
                 href="https://cer.gov.au/schemes/australian-carbon-credit-unit-scheme/accu-project-and-contract-register/project/EOP100553"
@@ -327,10 +316,6 @@ function MarketExamples() {
                 View the CER project record <Icon name="arrow" />
               </a>
             </div>
-            <p className="market-meaning">
-              A real manure-methane project with recorded carbon sales. This is
-              a contract total, not an annual farm estimate.
-            </p>
           </article>
           <article className="market-example">
             <div>
@@ -343,8 +328,6 @@ function MarketExamples() {
               <p>
                 Rio Tinto announced a long-term agreement to buy part of the
                 ACCUs expected from Meldora’s environmental planting projects.
-                The announcement does not disclose a unit price or purchase
-                volume.
               </p>
               <a
                 href="https://www.riotinto.com/en/news/trending-topics/investment-in-high-integrity-accus"
@@ -354,10 +337,6 @@ function MarketExamples() {
                 Read Rio Tinto’s announcement <Icon name="arrow" />
               </a>
             </div>
-            <p className="market-meaning">
-              Long-term purchase agreements are one route to market. This
-              example uses a different method from manure methane.
-            </p>
           </article>
           <article className="market-example">
             <div>
@@ -380,15 +359,11 @@ function MarketExamples() {
                 Read the NSW purchase record <Icon name="arrow" />
               </a>
             </div>
-            <p className="market-meaning">
-              Buyers can value a project’s wider benefits. Its method and
-              economics differ from a dairy or piggery project.
-            </p>
           </article>
         </div>
         <div className="market-close">
           <div>
-            <h3>Real demand. A decision that starts with your farm.</h3>
+            <h3>Explore your farm’s methane opportunity</h3>
             <p>
               Burping Cows helps you explore your methane opportunity, costs and
               preparation before approaching a project developer or buyer.
@@ -396,12 +371,6 @@ function MarketExamples() {
           </div>
           <AssessmentLink>Try it for my farm</AssessmentLink>
         </div>
-        <p className="market-note">
-          Independent market examples, not Burping Cows customers or
-          endorsements. They do not establish your farm’s eligibility, sale
-          price or returns. Burping Cows does not arrange credit sales. Sources
-          checked 3 October 2026.
-        </p>
       </div>
     </section>
   );
@@ -412,22 +381,18 @@ function HowItWorks() {
     [
       "Tell us about your farm",
       "Dairy or piggery, animal numbers, state and your current manure system.",
-      "farm",
     ],
     [
       "Describe your project",
-      "Describe your capture-and-flare project and its technical inputs. Other routes need specialist assessment.",
-      "leaf",
+      "Describe your capture-and-flare project and its technical inputs.",
     ],
     [
       "We assess the opportunity",
       "Route screening, net abatement, an indicative ACCU equivalent, preparation progress and a financial scenario.",
-      "chart",
     ],
     [
       "Know what to do next",
       "See what looks promising, what you already have, what’s missing and your next steps.",
-      "clipboard",
     ],
   ];
   return (
@@ -437,20 +402,14 @@ function HowItWorks() {
       aria-label="How Burping Cows works"
     >
       <div className="container">
-        <SectionHeading
-          center
-          title="From farm information to a clearer decision"
-        >
-          You know your farm. We help you make sense of the opportunity.
-        </SectionHeading>
-        <ol className="how-grid">
-          {steps.map(([title, text, icon], i) => (
+        <SectionHeading title="From farm information to a clearer decision" />
+        <ol className="how-steps">
+          {steps.map(([title, text], i) => (
             <li key={title}>
-              <div className="step-top">
+              <div className="step-title">
                 <span className="step-number">0{i + 1}</span>
-                <Icon name={icon as "farm" | "leaf" | "chart" | "clipboard"} />
+                <h3>{title}</h3>
               </div>
-              <h3>{title}</h3>
               <p>{text}</p>
             </li>
           ))}
@@ -487,13 +446,6 @@ function ExampleAssessment() {
               Take a more informed next step
             </li>
           </ul>
-          <div className="demo-context">
-            <span className="pill">Illustrative demo</span>
-            <p>
-              This is an example, not your farm’s assessment. All figures shown
-              are demonstration values.
-            </p>
-          </div>
         </div>
         <article className="assessment-card">
           <div className="assessment-header">
@@ -518,7 +470,7 @@ function ExampleAssessment() {
             <Icon name="check" />
             <span>
               {DEMO.eligibility}{" "}
-              <small>Preliminary route screening · subject to review</small>
+              <small>Preliminary route screening</small>
             </span>
           </div>
           <dl className="assessment-metrics">
@@ -534,7 +486,6 @@ function ExampleAssessment() {
                 <Info label="indicative ACCU equivalent">
                   An Australian Carbon Credit Unit represents one tonne of
                   eligible CO₂-equivalent emissions reduction or removal.
-                  Estimated reductions are not automatically issued as ACCUs.
                 </Info>
               </dt>
               <dd>
@@ -558,7 +509,6 @@ function ExampleAssessment() {
                 Preparation progress{" "}
                 <Info label="preparation progress">
                   Progress through the app’s evidence and implementation tasks.
-                  It is not legal eligibility or regulatory certification.
                 </Info>
               </strong>
               <p>{DEMO.preparation}</p>
@@ -585,12 +535,6 @@ function ExampleAssessment() {
               <strong>{DEMO.viability}</strong>
             </div>
           </div>
-          <p className="assessment-note">
-            Example only · projected inputs, not verified abatement. Planning
-            equivalent, not credits you will receive. Actual results depend on
-            farm data, applicable methodology, project design, verification and
-            market conditions.
-          </p>
         </article>
       </div>
     </section>
@@ -653,10 +597,7 @@ function FinancialOpportunity() {
                 {gross}
                 <small> / year</small>
               </strong>
-              <p>
-                Before costs. An indicative scenario, not a market price or
-                profit forecast.
-              </p>
+              <p>Before project costs.</p>
             </div>
           </div>
           <div className="cost-card">
@@ -679,8 +620,7 @@ function FinancialOpportunity() {
               ))}
             </ul>
             <p>
-              These costs vary by farm and project. Gross carbon value is not
-              profit, and eligibility is not a guarantee of returns.
+              Project costs vary by farm and project design.
             </p>
           </div>
         </div>
@@ -725,11 +665,6 @@ function ReadinessSection() {
                 Evidence needed.
                 <br />A practical next step.
               </h3>
-              <p>
-                Preparation progress is decision support,
-                <br />
-                not regulatory certification.
-              </p>
             </div>
           </div>
         </div>
@@ -754,10 +689,6 @@ function ReadinessSection() {
               </li>
             ))}
           </ul>
-          <p className="checklist-note">
-            Selected tasks from this demo assessment. Your farm’s evidence
-            requirements may differ.
-          </p>
         </div>
       </div>
     </section>
@@ -779,7 +710,7 @@ function AccuJourney() {
       <div className="container">
         <div className="journey-heading">
           <SectionHeading title="What happens after Burping Cows?" />
-          <p>We help with the first decision — not the final certification.</p>
+          <p>From initial screening to registration, monitoring and issuance.</p>
         </div>
         <ol className="journey">
           {stages.map((title, i) => (
@@ -791,11 +722,6 @@ function AccuJourney() {
             </li>
           ))}
         </ol>
-        <p className="journey-note">
-          Later stages require the applicable method, technical advisers and
-          Clean Energy Regulator processes. Burping Cows does not register
-          projects or issue ACCUs.
-        </p>
       </div>
     </section>
   );
@@ -963,14 +889,29 @@ function Footer() {
             <a href="#about">About</a>
           </nav>
         </div>
-        <div className="disclaimer">
+        <div className="disclaimer" id="disclaimer">
           <strong>Disclaimer</strong>
           <p>
             Burping Cows provides indicative pre-feasibility information only.
             It does not determine official ACCU eligibility, guarantee ACCU
             issuance or income, or replace Clean Energy Regulator guidance,
             registered auditors, carbon project developers, legal advisers or
-            financial advisers.
+            financial advisers. It does not register projects, issue ACCUs or
+            arrange credit sales. Routes beyond capture-and-flare require
+            specialist assessment.
+          </p>
+          <p>
+            Demo figures use illustrative, projected inputs. Carbon values are
+            gross estimates before costs, using a price assumption. Actual
+            outcomes depend on farm data, project design, applicable methodology,
+            verification and market conditions. Only registered projects meeting
+            Clean Energy Regulator requirements can receive ACCUs.
+          </p>
+          <p>
+            Public market examples are independent projects, not Burping Cows
+            customers or endorsements. Their methods and economics may differ
+            from your farm’s project; they do not establish its eligibility,
+            sale price or returns.
           </p>
         </div>
         <div className="footer-bottom">

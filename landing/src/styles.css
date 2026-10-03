@@ -318,22 +318,9 @@ h3 {
   gap: 12px;
   margin-top: 28px;
 }
-.hero-copy .trust-line {
-  font-size: 0.75rem;
-  display: flex;
-  gap: 6px;
-  align-items: flex-start;
-  margin-top: 20px;
-}
-.trust-line .icon {
-  width: 16px;
-  height: 16px;
-  margin-top: 2px;
-}
 .hero-visual {
   position: relative;
   align-self: center;
-  padding-bottom: 35px;
 }
 .farm-frame {
   overflow: hidden;
@@ -465,12 +452,6 @@ h3 {
   text-decoration: underline;
   text-underline-offset: 4px;
 }
-.visual-footnote {
-  display: block;
-  font-size: 0.6875rem;
-  color: var(--muted);
-  margin-top: 14px;
-}
 .problem {
   background: white;
   border-block: 1px solid var(--border);
@@ -596,23 +577,6 @@ h3 {
   font-size: 0.875rem;
   margin-top: 10px;
 }
-.guidance-note {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-  margin-top: 32px;
-}
-.guidance-note .icon {
-  height: 19px;
-  width: 19px;
-  color: var(--primary);
-  margin-top: 3px;
-}
-.guidance-note p {
-  font-size: 0.8125rem;
-  max-width: 100ch;
-}
-.guidance-note a,
 .cop-note a {
   text-decoration: underline;
   text-underline-offset: 4px;
@@ -623,39 +587,54 @@ h3 {
   border-block: 1px solid var(--border);
   padding-block: 80px;
 }
-.how-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+.guidance-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  min-height: 44px;
+  margin-top: var(--space-md);
+  color: var(--primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.guidance-link .icon {
+  width: 18px;
+  height: 18px;
+}
+.how-steps {
   list-style: none;
   padding: 0;
-  margin: 48px 0 0;
-  gap: 32px;
+  margin: var(--space-lg) 0 0;
 }
-.step-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.how-steps li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+  align-items: start;
+  gap: var(--space-xl);
   border-top: 1px solid #b2c6a4;
-  padding-top: 16px;
-  color: var(--primary);
-  margin-bottom: 24px;
+  padding-block: 32px;
+}
+.step-title {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-md);
 }
 .step-number {
-  font-size: 2rem;
+  flex-shrink: 0;
+  min-width: 32px;
+  color: var(--primary);
+  font-size: 1.5rem;
   font-weight: 500;
   letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
 }
-.step-top .icon {
-  width: 27px;
-  height: 27px;
-}
-.how-grid h3 {
+.how-steps h3 {
   font-size: 1.2rem;
-  max-width: 22ch;
 }
-.how-grid p {
-  margin-top: 12px;
-  font-size: 0.9375rem;
+.how-steps p {
+  max-width: 65ch;
 }
 .demo-section {
   background: var(--dark);
@@ -689,20 +668,6 @@ h3 {
   height: 18px;
   width: 18px;
   color: #afd48c;
-}
-.demo-context {
-  border-top: 1px solid #44675b;
-  margin-top: 40px;
-  padding-top: 24px;
-}
-.demo-context .pill {
-  color: #cee2bc;
-}
-.demo-context p {
-  color: #b9cec4;
-  font-size: 0.8125rem;
-  margin-top: 8px;
-  max-width: 45ch;
 }
 .assessment-card {
   background: var(--cream);
@@ -927,11 +892,6 @@ h3 {
   width: 22px;
   height: 22px;
 }
-.assessment-note {
-  font-size: 0.6875rem;
-  margin-top: 16px;
-  line-height: 1.65;
-}
 .info {
   position: relative;
   display: inline-block;
@@ -1133,12 +1093,15 @@ h3 {
   background: #eff4e8;
   border-block: 1px solid var(--border);
 }
-.market-heading {
+.market-heading,
+.market-example {
   display: grid;
-  grid-template-columns: 1.15fr 1fr;
-  gap: 80px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+  gap: var(--space-xl);
+}
+.market-heading {
   align-items: end;
-  margin-bottom: 40px;
+  margin-bottom: var(--space-lg);
 }
 .market-heading h2 {
   max-width: 16ch;
@@ -1147,11 +1110,11 @@ h3 {
   max-width: 48ch;
 }
 .market-example {
-  display: grid;
-  grid-template-columns: 1fr 1.4fr 0.85fr;
-  gap: 40px;
   border-top: 1px solid #b2c6a4;
-  padding-block: 32px;
+  padding-block: var(--space-lg);
+}
+.market-example > div > p:not(.market-method) {
+  max-width: 65ch;
 }
 .market-example > * {
   min-width: 0;
@@ -1179,9 +1142,6 @@ h3 {
   width: 18px;
   height: 18px;
 }
-.market-meaning {
-  font-size: 0.875rem;
-}
 .market-close {
   display: flex;
   align-items: center;
@@ -1197,21 +1157,11 @@ h3 {
 .market-close .button {
   flex-shrink: 0;
 }
-.market-note {
-  font-size: 0.8125rem;
-  margin-top: 24px;
-  max-width: 110ch;
-}
 @media (max-width: 850px) {
-  .market-heading {
-    gap: 32px;
-  }
-  .market-example {
-    grid-template-columns: 1fr 1.5fr;
-    gap: 24px 32px;
-  }
-  .market-meaning {
-    grid-column: 2;
+  .market-heading,
+  .market-example,
+  .how-steps li {
+    gap: var(--space-lg);
   }
   .market-close {
     align-items: flex-start;
@@ -1221,18 +1171,25 @@ h3 {
 }
 @media (max-width: 650px) {
   .market-heading,
-  .market-example {
+  .market-example,
+  .how-steps li {
     grid-template-columns: 1fr;
-    gap: 20px;
+    gap: var(--space-sm);
+  }
+  .how-steps li {
+    padding-block: var(--space-md);
+  }
+  .step-title {
+    gap: var(--space-sm);
+  }
+  .how-steps p {
+    padding-left: 48px;
   }
   .market-heading h2 {
     max-width: 18ch;
   }
   .market-example {
     padding-block: 28px;
-  }
-  .market-meaning {
-    grid-column: auto;
   }
   .market-method {
     margin-top: 8px;
@@ -1250,10 +1207,6 @@ h3 {
 .readiness-summary h3 {
   font-size: 1.2rem;
   margin-top: 12px;
-}
-.readiness-summary p {
-  font-size: 0.8125rem;
-  margin-top: 8px;
 }
 .checklist-card {
   border-top: 1px solid #b2c6a4;
@@ -1295,10 +1248,6 @@ h3 {
 }
 .needs-attention .checklist-icon {
   color: var(--warning);
-}
-.checklist-note {
-  font-size: 0.75rem;
-  margin-top: 20px;
 }
 .journey-section {
   background: #eff4e8;
@@ -1363,11 +1312,6 @@ h3 {
   letter-spacing: 0.03em;
   font-weight: 700;
   margin-top: 12px;
-}
-.journey-note {
-  font-size: 0.8125rem;
-  margin-top: 32px;
-  max-width: 100ch;
 }
 .climate-section {
   background: white;
@@ -1576,9 +1520,9 @@ h3 {
   font-size: 0.875rem;
 }
 .disclaimer p {
-  font-size: 0.8125rem;
-  margin-top: 8px;
-  max-width: 110ch;
+  font-size: 0.875rem;
+  margin-top: var(--space-sm);
+  max-width: 76ch;
 }
 .footer-bottom {
   display: flex;
@@ -1752,10 +1696,6 @@ h3 {
     grid-template-columns: 1fr 1fr;
     gap: 32px;
   }
-  .how-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 32px;
-  }
   .demo-layout {
     grid-template-columns: 0.85fr 1fr;
     gap: 32px;
@@ -1827,9 +1767,6 @@ h3 {
   }
   .readiness-summary h3 {
     font-size: 1.0625rem;
-  }
-  .readiness-summary p {
-    font-size: 0.75rem;
   }
   .journey-heading {
     gap: 32px;
@@ -1926,9 +1863,6 @@ h3 {
     padding: 13px 17px;
     font-size: 0.875rem;
   }
-  .hero-copy .trust-line {
-    font-size: 0.75rem;
-  }
   .farm-caption {
     padding: 24px 24px 0;
   }
@@ -1973,9 +1907,6 @@ h3 {
   .result-bottom {
     font-size: 0.75rem;
     gap: 8px;
-  }
-  .visual-footnote {
-    font-size: 0.6875rem;
   }
   .problem-heading h2 {
     font-size: 2.15rem;
@@ -2023,30 +1954,42 @@ h3 {
     font-size: 0.875rem;
   }
   .abatement-flow {
-    gap: 28px 24px;
-    margin-top: 40px;
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
+    margin-top: var(--space-lg);
+  }
+  .abatement-flow li {
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr) auto;
+    column-gap: var(--space-sm);
+    row-gap: var(--space-xs);
+  }
+  .abatement-flow .flow-icon {
+    grid-column: 1;
+    grid-row: 1 / 3;
+    align-items: flex-start;
+  }
+  .abatement-flow .flow-step {
+    grid-column: 3;
+    grid-row: 1;
+    float: none;
+  }
+  .abatement-flow h3,
+  .abatement-flow p {
+    grid-column: 2;
+    margin-top: 0;
+  }
+  .abatement-flow h3 {
+    grid-row: 1;
+  }
+  .abatement-flow p {
+    grid-row: 2;
   }
   .abatement-flow h3 {
     font-size: 1rem;
   }
   .abatement-flow p {
     font-size: 0.875rem;
-  }
-  .guidance-note p {
-    font-size: 0.8125rem;
-  }
-  .how-grid {
-    margin-top: 32px;
-    gap: 32px 24px;
-  }
-  .how-grid h3 {
-    font-size: 1.1rem;
-  }
-  .how-grid p {
-    font-size: 0.875rem;
-  }
-  .step-top {
-    margin-bottom: 16px;
   }
   .step-number {
     font-size: 1.8rem;
@@ -2056,10 +1999,6 @@ h3 {
   }
   .demo-section h2 {
     font-size: 2.3rem;
-  }
-  .demo-context {
-    margin-top: 28px;
-    padding-top: 20px;
   }
   .assessment-card {
     padding: 24px;
@@ -2076,9 +2015,6 @@ h3 {
   }
   .assessment-preparation {
     gap: 16px;
-  }
-  .assessment-note {
-    font-size: 0.75rem;
   }
   .financial-grid {
     margin-top: 32px;
@@ -2106,9 +2042,6 @@ h3 {
   }
   .readiness-summary h3 {
     font-size: 1.125rem;
-  }
-  .readiness-summary p {
-    font-size: 0.8125rem;
   }
   .checklist-card li {
     font-size: 0.9375rem;
@@ -2161,9 +2094,6 @@ h3 {
   .journey-badge {
     margin: 0;
     font-size: 0.6875rem;
-  }
-  .journey-note {
-    font-size: 0.8125rem;
   }
   .impact-grid {
     grid-template-columns: 1fr;
@@ -2312,7 +2242,7 @@ h3 {
 .two-column > *,
 .financial-grid > *,
 .abatement-flow > *,
-.how-grid > * {
+.how-steps li > * {
   min-width: 0;
 }
 .hero-actions {
@@ -2343,14 +2273,6 @@ h3 {
   }
 }
 @media (max-width: 380px) {
-  .abatement-flow,
-  .how-grid {
-    grid-template-columns: 1fr;
-  }
-  .how-grid h3,
-  .how-grid p {
-    max-width: 45ch;
-  }
   .assessment-metrics {
     grid-template-columns: 1fr;
   }
