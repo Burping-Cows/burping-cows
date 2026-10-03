@@ -23,9 +23,9 @@ export function Button({ title, onPress, secondary = false, loading = false, ico
   </Pressable>;
 }
 export function ErrorNotice({ message, onRetry }: { message?: string; onRetry?: () => void }) { if (!message) return null; return <View accessibilityRole="alert" style={styles.error}><Body style={{ color: c.error }}>{message}</Body>{onRetry && <Button title="Retry" secondary onPress={onRetry} />}</View>; }
-export function Screen({ children, title, subtitle, step, totalSteps = 6, back = false }: { children: React.ReactNode; title?: string; subtitle?: string; step?: number; totalSteps?: number; back?: boolean }) {
+export function Screen({ children, title, subtitle, step, totalSteps = 6, back = false, topAction }: { children: React.ReactNode; title?: string; subtitle?: string; step?: number; totalSteps?: number; back?: boolean; topAction?: React.ReactNode }) {
   const app = useApp();
-  return <SafeAreaView style={{ flex: 1, backgroundColor: c.cream }} edges={['top', 'left', 'right']}><KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}><ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.scroll}>
+  return <SafeAreaView style={{ flex: 1, backgroundColor: c.cream }} edges={['top', 'left', 'right']}>{topAction && <View style={{ width: '100%', maxWidth: 720, alignSelf: 'center', paddingHorizontal: 20, paddingVertical: 8 }}>{topAction}</View>}<KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}><ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.scroll}>
     <View style={styles.container}>
       {(title || back) && <View style={styles.header}>{back && <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)/home')} style={styles.back}><Icon name="chevron-left" size={28} /></Pressable>}<View style={{ flex: 1 }}><Heading small>{title}</Heading>{subtitle && <Body muted>{subtitle}</Body>}</View>{step && <Text style={styles.step}>{step} of {totalSteps}</Text>}</View>}
       {step && <View style={styles.track}><View style={[styles.progress, { width: `${step / totalSteps * 100}%` }]} /></View>}

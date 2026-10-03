@@ -11,4 +11,4 @@ export function normalizeSnapshot(raw: SavedAssessment): SavedAssessment {
   const input = normalizeInput(raw.input as unknown as Record<string, unknown>);
   return { ...raw, input, result: calculateAssessment(input), assumptions: defaultAssumptions, legacySnapshot: raw, snapshotVersion: 2 };
 }
-export const draftRoute = (step: number) => (['/assessment/farm-profile','/assessment/project','/assessment/screening','/assessment/technical','/assessment/finance','/assessment/results'] as const)[Math.max(0,Math.min(step-1,5))];
+export const draftRoute = (step: number) => (['/assessment/farm-profile','/assessment/project','/assessment/screening','/assessment/technical','/assessment/finance','/assessment/results','/assessment/action-plan'] as const)[Math.max(0,Math.min(step-1,6))];

@@ -19,7 +19,7 @@ it('keeps saved version-two outputs and assumptions without recalculation', () =
   expect(normalizeSnapshot(snapshot)).toBe(snapshot);
   expect(normalizeSnapshot(snapshot).result.finance.grossCarbonValue).toBeCloseTo(38392.1216);
 });
-it('resumes all six assessment steps and bounds invalid step indices', () => {
-  expect([1,2,3,4,5,6].map(draftRoute)).toEqual(['/assessment/farm-profile','/assessment/project','/assessment/screening','/assessment/technical','/assessment/finance','/assessment/results']);
-  expect(draftRoute(0)).toBe('/assessment/farm-profile'); expect(draftRoute(99)).toBe('/assessment/results');
+it('resumes all assessment steps and bounds invalid step indices', () => {
+  expect([1,2,3,4,5,6,7].map(draftRoute)).toEqual(['/assessment/farm-profile','/assessment/project','/assessment/screening','/assessment/technical','/assessment/finance','/assessment/results','/assessment/action-plan']);
+  expect(draftRoute(0)).toBe('/assessment/farm-profile'); expect(draftRoute(99)).toBe('/assessment/action-plan');
 });

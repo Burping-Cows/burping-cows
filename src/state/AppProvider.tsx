@@ -16,6 +16,7 @@ interface AppContextValue {
   user: User | null;
   ready: boolean; bootError: string; retryBoot: () => void; welcomed: boolean; welcome: () => Promise<void>; logout: () => Promise<void>;
   draft: Draft; setInput: (values: Partial<AssessmentInput>) => void; setStep: (step: number) => void;
+  pauseAssessment: (step: number, values?: Partial<AssessmentInput>) => Promise<void>;
   startNew: () => void; exploreDemo: () => void; edit: (record: SavedAssessment, duplicate?: boolean) => void;
   records: SavedAssessment[]; refresh: () => Promise<void>; listError: string; busy: boolean;
   save: () => Promise<SavedAssessment>; remove: (id: string) => Promise<void>; assumptions: Assumptions;
@@ -83,6 +84,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     },
     setInput,
     setStep: step => setDraft(current => ({ ...current, step })),
+    pauseAssessment: async (step, values = {}) => {
+      if (!ready || loadedScope !== scope) throw new Error('Your draft is still loading. Please try again shortly.');
+      const currentGeneration = generation.current;
+      const paused = { ...draft, input: updateAssessmentInput(draft.input, values), started: true, step };
+      setDraft(paused);
+      try {
+        // Persist the current form and screen before navigating, without requiring
+        // a completed assessment or a network connection.
+        await writeLocal(localKey('draft'), paused);
+        if (currentGeneration !== generation.current) throw new Error('Your account changed while saving the draft. Please try again.');
+        setStorageError('');
+      } catch (error) {
+        if (currentGeneration === generation.current) setStorageError(errorMessage(error));
+        throw error;
+      }
+    },
     startNew: () => setDraft({ ...blankDraft(), started: true, input: { ...emptyInput, ...farmDefaults, monitoringEquipment: [], accuPrice: assumptions.defaultAccuPrice, lowAccuPrice: Math.min(MARKET_ASSUMPTIONS.low, assumptions.defaultAccuPrice), highAccuPrice: Math.max(MARKET_ASSUMPTIONS.high, assumptions.defaultAccuPrice) } }),
     exploreDemo: () => setDraft({ input: { ...demoInput, monitoringEquipment: [...demoInput.monitoringEquipment] }, sample: true, started: true, step: 1 }),
     edit: (record, duplicate = false) => setDraft({ input: { ...record.input, monitoringEquipment: [...record.input.monitoringEquipment] }, editingId: duplicate ? undefined : record.id, sample: record.sample, legacySnapshot: record.legacySnapshot, started: true, step: 1 }),

@@ -13,7 +13,7 @@ npm start
 
 Use `npm run ios`, `npm run android` or `npm run web` to launch your chosen platform. The project uses Expo SDK 57, Expo Router, React Hook Form, Zod and Supabase. The current logo is `assets/branding/green-in-app-logo.png`; the interface uses cream backgrounds and green accents.
 
-With no Supabase environment variables, the app runs in local demo mode and saves assessments on the device. Local drafts persist across restarts. Existing login/signup/logout flows remain available when Supabase is configured.
+With no Supabase environment variables, the app runs in local demo mode and saves assessments on the device. Local drafts persist across restarts. Every assessment screen has a fixed **Save & exit** button that saves the current step and answers on the device before returning Home. Choose **Resume assessment** on Home to continue from that screen, including incomplete forms. Existing login/signup/logout flows remain available when Supabase is configured.
 
 ## Assessment journey
 
