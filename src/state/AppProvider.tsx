@@ -10,7 +10,7 @@ import { farmSchema, projectSchema, priceSchema } from '../lib/validation';
 type Draft = { input: AssessmentInput; editingId?: string; sample?: boolean; started: boolean; step: number };
 type FarmDefaults = Pick<AssessmentInput, 'farmType' | 'animalCount' | 'state' | 'manureSystem' | 'projectStartedStatus' | 'siteControl' | 'monitoringEquipment'>;
 interface AppContextValue {
-  ready: boolean; bootError: string; retryBoot: () => void; welcomed: boolean; welcome: () => Promise<void>;
+  ready: boolean; bootError: string; retryBoot: () => void; welcomed: boolean; welcome: () => Promise<void>; logout: () => Promise<void>;
   draft: Draft; setInput: (values: Partial<AssessmentInput>) => void; setStep: (step: number) => void;
   startNew: () => void; exploreDemo: () => void; edit: (record: SavedAssessment, duplicate?: boolean) => void;
   records: SavedAssessment[]; refresh: () => Promise<void>; listError: string; busy: boolean;
@@ -41,6 +41,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const value: AppContextValue = {
     ready, bootError, retryBoot: () => setAttempt(v => v + 1), welcomed, refresh,
     welcome: async () => { await writeLocal('welcomed', true); setWelcomed(true); }, draft, assumptions, records, listError, busy, storageError, farmDefaults,
+    // Return to onboarding without losing access to the device's anonymous account or saved work.
+    logout: async () => { await writeLocal('welcomed', false); setWelcomed(false); },
     setInput,
     setStep: step => setDraft(current => ({ ...current, step })),
     startNew: () => setDraft({ ...blankDraft(), started: true, input: { ...emptyInput, ...farmDefaults, monitoringEquipment: [...(farmDefaults?.monitoringEquipment ?? [])], accuPrice: assumptions.defaultAccuPrice } }),

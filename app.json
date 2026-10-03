@@ -1,10 +1,10 @@
 {
   "expo": {
     "name": "Burping Cows", "slug": "burping-cows", "scheme": "burping-cows", "version": "1.0.0", "orientation": "portrait", "userInterfaceStyle": "light",
-    "icon": "./assets/branding/cow-methane-logo.png",
+    "icon": "./assets/branding/green-in-app-logo.png",
     "ios": { "supportsTablet": true, "bundleIdentifier": "au.burpingcows.app" },
     "android": { "package": "au.burpingcows.app" },
-    "web": { "bundler": "metro", "output": "static", "name": "Burping Cows", "favicon": "./assets/branding/cow-methane-logo.png" },
+    "web": { "bundler": "metro", "output": "static", "name": "Burping Cows", "favicon": "./assets/branding/green-in-app-logo.png" },
     "plugins": ["expo-router"]
   }
 }

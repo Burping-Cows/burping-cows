@@ -2,7 +2,7 @@ import React from 'react';
 import Svg, { Circle, Defs, Ellipse, G, LinearGradient, Path, Rect, Stop } from 'react-native-svg';
 import { Image, View } from 'react-native';
 export function Logo({ size = 110 }: { size?: number }) {
-  return <Image source={require('../../assets/branding/cow-methane-logo.png')} style={{ width: size, height: size, borderRadius: size * 0.16 }} resizeMode="contain" accessible accessibilityRole="image" accessibilityLabel="Burping Cows cow with green methane puff logo" />;
+  return <Image source={require('../../assets/branding/green-in-app-logo.png')} style={{ width: size, height: size }} resizeMode="contain" accessible accessibilityRole="image" accessibilityLabel="Burping Cows green cow silhouette logo" />;
 }
 export function FarmIllustration({ height = 185, captured = false }: { height?: number; captured?: boolean }) {
   return <View style={{ overflow: 'hidden', borderRadius: 18 }}><Svg width="100%" height={height} viewBox="0 0 600 280" preserveAspectRatio="xMidYMax slice" accessibilityLabel={captured ? 'Farm capturing methane for energy' : 'Rolling green hills and a dairy farm'}>
