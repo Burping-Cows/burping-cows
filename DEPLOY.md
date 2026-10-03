@@ -27,14 +27,22 @@ Google Fonts, Supabase or another network service to render.
 
 ## Cloudflare Pages
 
-1. Push this repository to GitHub.
-2. Open the Cloudflare dashboard.
-3. Create a **Pages** project and connect the GitHub repository.
-4. Choose the **Vite** framework preset.
-5. Leave the root directory as the repository root.
-6. Set the build command to **`npm run build`**.
-7. Set the build output directory to **`dist`**.
-8. Deploy. No environment variables or Functions are needed.
+The existing **burping-cows** Pages project uses Direct Upload and the production
+branch **`codex/landing-page`**. Its assigned address is
+**https://burping-cows.pages.dev**. Only the nine public files in `dist/` are
+uploaded. No billing changes, paid add-ons or Functions are configured.
+
+For a future deployment with your authorized Cloudflare CLI session:
+
+```sh
+npm run build
+npx wrangler pages deploy dist --project-name burping-cows --branch codex/landing-page
+```
+
+Pushing the GitHub branch does not automatically deploy this Direct Upload
+project. Alternatively, create a separate Git-connected Pages project with the
+repository root, build command **`npm run build`**, and output directory **`dist`**.
+No environment variables or Functions are needed.
 
 Use the build-time `NODE_VERSION` setting if necessary to select Node 22.13+
 or Node 24. Do not configure the Expo `export:web` command for this landing page.
@@ -68,6 +76,16 @@ it uses the unrounded annual equivalent and is not a market feed or net-profit
 estimate. It does not change the fixed demo’s financial verdict.
 
 The official ACCU Scheme and COP31 context links are also in `config.ts`.
+
+## Public market examples
+
+The market section links to primary sources for Rivalea's Corowa piggery biogas
+project, Rio Tinto's Meldora offtake announcement, and the NSW Natural Resources
+Commission's Tiwi Island credit purchase. Sources were checked on 3 October
+2026. Rivalea's 97,000 figure is total abatement sold under a completed contract,
+not annual output. The other projects use different methods from manure methane.
+These examples are not customers, endorsements, farm-return comparisons or live
+price data. The page does not claim to arrange sales or secure buyers.
 
 ## Branding
 
