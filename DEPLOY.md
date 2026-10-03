@@ -46,9 +46,16 @@ npx wrangler pages deploy dist --project-name burping-cows --branch codex/landin
 It uses Node 24, `npm ci`, `npm run build`, and Wrangler to upload `dist/`.
 Other branches and pull requests do not publish this site.
 
-**One-time activation:** add a repository Actions secret named
-**`CLOUDFLARE_API_TOKEN`**. Without it the workflow stops with a clear setup error;
-automatic publishing is not active yet.
+New pushes cancel older workflow runs. Immediately before publishing, the
+workflow also checks that its commit is still the branch's latest commit.
+Re-running an older commit therefore skips publication.
+
+The repository Actions secret **`CLOUDFLARE_API_TOKEN`** is configured with an
+account-owned token named **Burping Cows GitHub deployment**, limited to
+**Pages Write** in the account hosting this project. It has no billing or other
+product permissions. GitHub encrypts the secret; its value is never committed.
+
+To replace or rotate the credential:
 
 1. In [Cloudflare Account API tokens](https://dash.cloudflare.com/a6d8740a330b9414a5156037b16d70d6/api-tokens),
    create a custom token named **Burping Cows GitHub deployment**.
@@ -67,9 +74,10 @@ services, billing, Functions, or a GitHub-to-Cloudflare Git installation.
 The account ID in the workflow is an identifier, not a credential. The token is
 supplied only to the credential check and official deployment action.
 
-Cloudflare's direct Git connection was attempted but rejected because its Git
-installation is not working. The connected MCP can deploy Pages but cannot
-create account API tokens. GitHub Actions keeps the existing project and URL.
+The connected MCP can deploy Pages but cannot create account API tokens.
+The deployment credential was created through the authorized Cloudflare
+dashboard session. GitHub Actions keeps the existing project and URL without
+requiring a Cloudflare GitHub App installation.
 
 Official reference: [Cloudflare's Direct Upload CI guide](https://developers.cloudflare.com/pages/how-to/use-direct-upload-with-continuous-integration/).
 

@@ -10,7 +10,7 @@ permissions:
 
 concurrency:
   group: burping-cows-production
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   deploy:
@@ -46,7 +46,23 @@ jobs:
       - name: Build the landing page
         run: npm run build
 
+      - name: Check the latest branch commit
+        id: branch-state
+        run: |
+          latest_sha="$(git ls-remote origin refs/heads/codex/landing-page | cut -f1)"
+          if [ -z "$latest_sha" ]; then
+            echo "::error::Could not verify the latest landing-page commit."
+            exit 1
+          fi
+          if [ "$latest_sha" = "$GITHUB_SHA" ]; then
+            echo "is_latest=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_latest=false" >> "$GITHUB_OUTPUT"
+            echo "A newer branch commit exists; skipping this deployment."
+          fi
+
       - name: Deploy the static site
+        if: steps.branch-state.outputs.is_latest == 'true'
         uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
