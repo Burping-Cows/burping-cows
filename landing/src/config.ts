@@ -1,5 +1,8 @@
-// Replace with the deployed assessment app URL when available.
-export const APP_URL = "#demo";
+// Replace with a hosted assessment app URL when one is available.
+export const APP_URL = "#get-app";
+export const REPOSITORY_URL = "https://github.com/Burping-Cows/burping-cows";
+export const SETUP_GUIDE_URL = `${REPOSITORY_URL}#run-locally`;
+export const SOURCE_DOWNLOAD_URL = `${REPOSITORY_URL}/archive/refs/heads/main.zip`;
 export const ACCU_SCHEME_URL =
   "https://cer.gov.au/schemes/australian-carbon-credit-unit-scheme";
 export const COP31_SOURCE_URL =

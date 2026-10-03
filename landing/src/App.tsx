@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Icon from "./components/Icon";
 import {
   AssessmentLink,
@@ -10,6 +10,9 @@ import {
 import {
   ACCU_SCHEME_URL,
   COP31_SOURCE_URL,
+  REPOSITORY_URL,
+  SETUP_GUIDE_URL,
+  SOURCE_DOWNLOAD_URL,
   DEMO,
   formatNumber,
   formatMoney,
@@ -39,7 +42,7 @@ function Navbar() {
             </a>
           ))}
         </nav>
-        <AssessmentLink className="nav-cta">Start assessment</AssessmentLink>
+        <AssessmentLink className="nav-cta">Get the app</AssessmentLink>
         <button
           className="menu-toggle"
           aria-label={open ? "Close navigation" : "Open navigation"}
@@ -80,7 +83,7 @@ function Hero() {
           Burping Cows makes that first decision easier.
         </p>
         <div className="hero-actions">
-          <AssessmentLink>Check my farm</AssessmentLink>
+          <AssessmentLink>Try Burping Cows</AssessmentLink>
           <a className="button button-secondary" href="#accus">
             How ACCUs work
           </a>
@@ -391,7 +394,7 @@ function MarketExamples() {
               preparation before approaching a project developer or buyer.
             </p>
           </div>
-          <AssessmentLink>Explore my farm’s potential</AssessmentLink>
+          <AssessmentLink>Try it for my farm</AssessmentLink>
         </div>
         <p className="market-note">
           Independent market examples, not Burping Cows customers or
@@ -858,21 +861,86 @@ function ClimateImpact() {
 
 function FinalCTA() {
   return (
-    <section className="final-cta container" aria-label="Start an assessment">
-      <h2>
-        Could methane reduction
-        <br />
-        make sense for your farm?
-      </h2>
-      <p>
-        Find out what the opportunity could look like before
-        <br className="desktop-break" /> committing significant time and money.
-      </p>
-      <AssessmentLink>Start a free assessment</AssessmentLink>
-      <span className="cta-time">
-        <Icon name="clock" />
-        Takes only a few minutes.
-      </span>
+    <section
+      className="section get-app-section"
+      id="get-app"
+      aria-labelledby="get-app-title"
+    >
+      <div className="container two-column get-app-layout">
+        <div>
+          <h2 id="get-app-title">
+            Get Burping Cows.
+            <br />
+            Put your farm in the picture.
+          </h2>
+          <p className="get-app-intro">
+            The working demo app is available on GitHub. Download the source and
+            run it in your browser on a computer to explore your own farm’s
+            opportunity.
+          </p>
+          <div className="hero-actions">
+            <a
+              className="button"
+              href={REPOSITORY_URL}
+              target="_blank"
+              rel="noreferrer"
+            >
+              View app on GitHub <Icon name="arrow" />
+            </a>
+            <a className="button button-secondary" href={SOURCE_DOWNLOAD_URL}>
+              Download source
+            </a>
+          </div>
+          <p className="get-app-note">
+            This release runs locally and requires a computer for setup. Local
+            demo mode works without a Supabase account; assessments are saved on
+            your device.
+          </p>
+          <a
+            className="setup-link"
+            href={SETUP_GUIDE_URL}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Read the full setup guide <Icon name="arrow" />
+          </a>
+        </div>
+        <ol className="install-steps">
+          <li>
+            <h3>Get the project</h3>
+            <p>
+              Download and unzip the source. Install Node.js 22.13 or newer,
+              then open a terminal in the project folder.
+            </p>
+          </li>
+          <li>
+            <h3>Install and launch</h3>
+            <p>
+              Run these commands to install the dependencies and start the
+              assessment app in your browser.
+            </p>
+            <pre aria-label="Commands to run the assessment app">
+              <code>{"npm install\nnpm run web"}</code>
+            </pre>
+          </li>
+          <li>
+            <h3>Explore your farm</h3>
+            <p>
+              Choose <strong>Use demo farm</strong> for a worked example, or
+              enter your farm and project information to create your own
+              assessment.
+            </p>
+          </li>
+        </ol>
+      </div>
+      <div className="container mobile-setup-note">
+        <Icon name="clipboard" />
+        <p>
+          <strong>Developing for iOS or Android?</strong> The repository
+          includes the Expo app and platform launch commands. Follow the setup
+          guide for your development environment.
+        </p>
+      </div>
     </section>
   );
 }
@@ -884,7 +952,10 @@ function Footer() {
         <div className="footer-top">
           <Brand />
           <nav aria-label="Footer navigation">
-            <AssessmentLink secondary>Assessment</AssessmentLink>
+            <AssessmentLink secondary>Get the app</AssessmentLink>
+            <a href={REPOSITORY_URL} target="_blank" rel="noreferrer">
+              GitHub
+            </a>
             <a href="#how-it-works">How it works</a>
             <a href={ACCU_SCHEME_URL} target="_blank" rel="noreferrer">
               ACCU Scheme
@@ -913,6 +984,12 @@ function Footer() {
 }
 
 export default function App() {
+  useEffect(() => {
+    // Resolve direct section links after React has mounted the page content.
+    const target = document.getElementById(window.location.hash.slice(1));
+    target?.scrollIntoView({ behavior: "instant" });
+  }, []);
+
   return (
     <>
       <a className="skip-link" href="#main">

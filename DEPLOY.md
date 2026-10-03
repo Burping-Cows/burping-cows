@@ -49,10 +49,10 @@ or Node 24. Do not configure the Expo `export:web` command for this landing page
 
 ## Before linking the live assessment app
 
-In `landing/src/config.ts`, change `APP_URL` from `#demo` to the deployed Expo
-assessment app's URL. All assessment CTAs share this value. Until then, each
-button leads to the clearly labeled example assessment on the page; the site
-does not claim to perform a real assessment.
+In `landing/src/config.ts`, change `APP_URL` from `#get-app` to the deployed Expo
+assessment app's URL when one is available. The primary CTAs currently lead to
+the Get the app section, with GitHub, source download and local installation
+instructions. The example assessment remains available at `#demo`.
 
 `DEMO` in `landing/src/config.ts` is a verified snapshot of the latest app’s
 `demoInput` and `calculateAssessment` at commit
