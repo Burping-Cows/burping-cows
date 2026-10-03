@@ -57,6 +57,17 @@ it('removes private routes after logout while leaving signup and onboarding avai
   expect(routes()).not.toContain('(tabs)'); expect(routes()).not.toContain('assessment/results');
   expect(routes()).toContain('signup'); expect(routes()).toContain('onboarding');
 });
+it('retains a directly opened assessment route until stored welcome state is restored', async () => {
+  await act(async () => { renderer = create(<Navigation />); });
+  const routes = () => renderer.root.findAllByType('Route' as React.ElementType).map(node => node.props.name);
+  expect(routes()).toContain('assessment/results');
+  mocks.app.ready = true; mocks.app.welcomed = true;
+  await act(async () => renderer.update(<Navigation />));
+  expect(routes()).toContain('assessment/results');
+  mocks.app.welcomed = false;
+  await act(async () => renderer.update(<Navigation />));
+  expect(routes()).not.toContain('assessment/results');
+});
 it('waits for restored onboarding state before dispatching the initial redirect', async () => {
   await act(async () => { renderer = create(<Index />); });
   expect(renderer.toJSON()).toBeNull();

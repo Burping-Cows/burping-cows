@@ -1,8 +1,10 @@
 # Burping Cows
 
-A weekend MVP for Australian dairy and piggery farmers exploring methane-to-ACCU feasibility. Built with Expo SDK 57, React Native, TypeScript, Expo Router, React Hook Form, Zod, and Supabase. The green visual direction follows the supplied reference, with original reusable SVG farm illustrations. The supplied transparent green cow silhouette logo in `assets/branding/green-in-app-logo.png` is used on the welcome, dashboard, and About screens, and as the app icon and web favicon. Its distinct asset filename refreshes Expo Go’s project loading image. Native icon changes require rebuilding the app; Expo Go retains its own launcher icon.
+A weekend MVP for Australian dairy and piggery farmers exploring methane-to-ACCU feasibility. Built with Expo SDK 57, React Native, TypeScript, Expo Router, React Hook Form, Zod, and Supabase. The green visual direction follows the supplied reference, with original Figma illustrations and local DM Sans fonts. The supplied transparent green cow silhouette logo in `assets/branding/green-in-app-logo.png` is used on the welcome, dashboard, and About screens, and as the app icon and web favicon. Its distinct asset filename refreshes Expo Go’s project loading image. Native icon changes require rebuilding the app; Expo Go retains its own launcher icon.
 
 ## Run locally
+
+The current Figma review implementation and remaining visual checks are documented in [docs/figma-review.md](docs/figma-review.md). Original design assets live in `assets/figma`; local DM Sans instances use the reference's optical size 14. Welcome and Profile retain account controls as requested.
 
 Use Node.js 22.13+ (Node 24 LTS recommended) and npm.
 

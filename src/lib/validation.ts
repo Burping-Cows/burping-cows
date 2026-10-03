@@ -3,7 +3,7 @@ import { farmTypes, states, manureSystems, projects } from '../types/assessment'
 import { anaerobicSystems } from './eligibility';
 const nonnegative = z.number().finite().min(0, 'Enter zero or a positive number');
 export const farmSchema = z.object({
-  farmType: z.enum(farmTypes, { message: 'Choose a farm type' }), animalCount: z.number({ message: 'Enter an animal count' }).int('Use a whole number').min(1).max(10000000),
+  farmType: z.enum(farmTypes, { message: 'Choose a farm type' }), animalCount: z.number({ message: 'Enter the number of animals.' }).int('Use a whole number').min(1).max(10000000),
   state: z.enum(states, { message: 'Choose a state' }), manureSystem: z.enum(manureSystems, { message: 'Choose a manure system' }),
   projectStartedStatus: z.enum(['No', 'Planning only', 'Yes'], { message: 'Choose a project status' }), siteControl: z.enum(['Yes', 'No', 'Unsure'], { message: 'Choose a site-control answer' }),
   monitoringEquipment: z.array(z.string()).min(1, 'Select equipment, None, or Unsure'),

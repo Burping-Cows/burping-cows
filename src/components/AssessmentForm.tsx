@@ -1,10 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Control, Controller, FieldErrors, Resolver, UseFormReturn, useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 import { AssessmentInput, equipmentOptions, farmTypes, manureSystems, projects, states } from '../types/assessment';
 import { useApp } from '../state/AppProvider';
-import { Input, Options, Card, Body, styles, Icon } from './ui';
-import { View } from 'react-native';
+import { Input, Options, Card, Body, Heading, styles } from './ui';
 export const resolverFor = (schema: z.ZodType): Resolver<AssessmentInput> => async values => {
   const parsed = schema.safeParse(values);
   if (parsed.success) return { values, errors: {} };
@@ -17,11 +16,30 @@ export function useDraftForm(schema: z.ZodType) {
   const form = useForm<AssessmentInput>({ defaultValues: app.draft.input, resolver: resolverFor(schema), mode: 'onTouched' });
   const { subscribe } = form;
   const { setInput } = app;
+  const hydrated = useRef(false);
+  useEffect(() => {
+    if (!app.ready) { hydrated.current = false; return; }
+    if (!hydrated.current) { form.reset(app.draft.input); hydrated.current = true; }
+  }, [app.ready, app.draft.input, form]);
   useEffect(() => subscribe({ formState: { values: true }, callback: ({ values }) => setInput(values) }), [subscribe, setInput]);
   return form;
 }
 function NumericField({ form, name, label, suffix, helper }: { form: UseFormReturn<AssessmentInput>; name: keyof AssessmentInput; label: string; suffix?: string; helper?: string }) {
-  return <Controller control={form.control} name={name} render={({ field, fieldState }) => <Input label={label} value={field.value === undefined ? '' : String(field.value)} onBlur={field.onBlur} onChange={value => { const sanitized = value.replace(/[,\s$]/g, ''); field.onChange(sanitized === '' ? undefined : Number(sanitized)); }} error={fieldState.error?.message} suffix={suffix} helper={helper} numeric />} />;
+  return <Controller control={form.control} name={name} render={({ field, fieldState }) => <NumericInput label={label} value={field.value} onBlur={field.onBlur} onChange={field.onChange} error={fieldState.error?.message} suffix={suffix} helper={helper} />} />;
+}
+function NumericInput({ value, onChange, ...props }: Omit<React.ComponentProps<typeof Input>, 'value' | 'onChange' | 'numeric'> & { value: AssessmentInput[keyof AssessmentInput]; onChange: (value: number | undefined) => void }) {
+  const [text, setText] = useState(value === undefined ? '' : String(value));
+  const emitted = useRef(value);
+  useEffect(() => {
+    if (!Object.is(value, emitted.current)) { emitted.current = value; setText(value === undefined ? '' : String(value)); }
+  }, [value]);
+  return <Input {...props} value={text} numeric onChange={next => {
+    setText(next);
+    const sanitized = next.replace(/[,\s$]/g, '');
+    const parsed = sanitized === '' ? undefined : Number(sanitized);
+    emitted.current = parsed;
+    onChange(parsed);
+  }} />;
 }
 function ChoiceField({ control, name, label, options }: { control: Control<AssessmentInput>; name: keyof AssessmentInput; label: string; options: readonly string[] }) {
   return <Controller control={control} name={name} render={({ field, fieldState }) => <Options label={label} options={options} value={String(field.value ?? '')} onChange={field.onChange} error={fieldState.error?.message} />} />;
@@ -45,7 +63,7 @@ export function ProjectFields({ form }: { form: UseFormReturn<AssessmentInput> }
     <Controller control={form.control} name="methaneInputType" render={({ field, fieldState }) => <Options label="Estimated methane captured per year" options={['Tonnes CH₄', 'm³ methane', 'I don’t know']} value={field.value === 'tonnes' ? 'Tonnes CH₄' : field.value === 'm3' ? 'm³ methane' : 'I don’t know'} onChange={value => field.onChange(value === 'Tonnes CH₄' ? 'tonnes' : value === 'm³ methane' ? 'm3' : 'estimator')} error={fieldState.error?.message} />} />
     {type === 'tonnes' && <NumericField form={form} name="methaneTonnes" label="Methane captured / reduced" suffix="t CH₄/yr" />}
     {type === 'm3' && <NumericField form={form} name="methaneM3" label="Methane captured / reduced" suffix="m³/yr" />}
-    {type === 'estimator' && <Card pale><View style={styles.row}><Icon name="calculator-variant-outline" /><Body>Simple demonstration estimator</Body></View><Body muted>{form.getValues('animalCount') ?? '—'} {form.getValues('farmType').toLowerCase() || 'farm'} animals · {form.getValues('manureSystem') || 'system not selected'}</Body><NumericField form={form} name="captureEfficiency" label="Estimated capture efficiency" suffix="%" /><Body muted style={{ fontSize: 12 }}>Uses farm information from step 1. Simplified effluent factors only; excludes enteric methane and official method calculations.</Body></Card>}
+    {type === 'estimator' && <Card pale><Heading small style={{ minHeight: 58 }}>Simple demonstration estimator</Heading><Body muted style={{ minHeight: 46 }}>{form.getValues('animalCount') ?? '—'} {form.getValues('farmType').toLowerCase() || 'farm'} animals · {form.getValues('manureSystem') || 'system not selected'}</Body><NumericField form={form} name="captureEfficiency" label="Estimated capture efficiency" suffix="%" /><Body muted style={[styles.small, { minHeight: 57 }]}>Uses farm information from step 1. Simplified effluent factors only; excludes enteric methane and official method calculations.</Body></Card>}
     <NumericField form={form} name="implementationCost" label="Estimated implementation cost" suffix="AUD" helper="Optional if unknown; needed for the payback indicator." />
     <NumericField form={form} name="annualOperatingCost" label="Expected operating cost per year" suffix="AUD/yr" helper="Optional. Shown separately; excluded from gross-revenue payback." />
     <NumericField form={form} name="projectLifetimeYears" label="Expected project lifetime" suffix="years" />

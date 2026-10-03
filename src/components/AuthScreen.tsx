@@ -67,7 +67,7 @@ export default function AuthScreen({ mode }: { mode: 'login' | 'signup' | 'reset
       <Button title="Back to log in" onPress={() => router.replace('/login')} />
       <Button title="Use a different email" secondary onPress={() => setSent(false)} />
     </> : <>
-      {/* {!cloudConfigured && <Card pale><Body>Accounts are unavailable in local demo mode. You can explore Burping Cows without an account.</Body></Card>} */}
+      {!cloudConfigured && <Card pale><Body>Accounts are unavailable in local demo mode. You can explore Burping Cows without an account.</Body></Card>}
       {cloudConfigured && app.user?.is_anonymous && app.records.length > 0 && <Card pale><Body>Account assessments are separate from your guest assessments. Signing in or creating an account switches away from your guest session.</Body></Card>}
       {isSignup && <AuthField key="name" label="Full name" value={values.name} onChange={change('name')} error={errors.name} />}
       <AuthField key="email" label="Email address" kind="email" value={values.email} onChange={change('email')} error={errors.email} />

@@ -2,13 +2,17 @@ import React from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { useFonts, DMSans_400Regular as DM_Sans_400Regular, DMSans_500Medium as DM_Sans_500Medium, DMSans_700Bold as DM_Sans_700Bold } from '@expo-google-fonts/dm-sans';
+import { useFonts } from '@expo-google-fonts/dm-sans';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { AppProvider, useApp } from '../state/AppProvider';
 import { theme } from '../config/theme';
 import { Button, ErrorNotice } from '../components/ui';
 export default function RootLayout() {
-  const [loaded, fontError] = useFonts({ DM_Sans_400Regular, DM_Sans_500Medium, DM_Sans_700Bold });
+  const [loaded, fontError] = useFonts({
+    DM_Sans_400Regular: require('../../assets/fonts/DMSans-14pt-Regular.ttf'),
+    DM_Sans_500Medium: require('../../assets/fonts/DMSans-14pt-Medium.ttf'),
+    DM_Sans_700Bold: require('../../assets/fonts/DMSans-14pt-Bold.ttf'),
+  });
   if (!loaded && !fontError) return <View style={{ flex: 1, backgroundColor: theme.colors.cream, alignItems: 'center', justifyContent: 'center' }}><ActivityIndicator color={theme.colors.primary} /><Text>Loading Burping Cows…</Text></View>;
   return <SafeAreaProvider><AppProvider><Navigation /><StatusBar style="dark" /></AppProvider></SafeAreaProvider>;
 }
@@ -24,7 +28,7 @@ export function Navigation() {
       <Stack.Screen name="signup" />
       <Stack.Screen name="forgot-password" />
       <Stack.Screen name="auth/callback" />
-      <Stack.Protected guard={app.welcomed}>
+      <Stack.Protected guard={!app.ready || app.welcomed}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="assessment/farm-profile" />
         <Stack.Screen name="assessment/project" />
