@@ -65,11 +65,11 @@ function Hero() {
           <Icon name="sprout" /> For Australian dairy &amp; piggery farmers
         </p>
         <h1 id="hero-title">
-          From methane
+          The less
           <br />
-          to money,
+          your cow burps,
           <br />
-          <span>minus the mystery.</span>
+          <span>the better your income.</span>
         </h1>
         <p className="hero-intro">
           Could your farm’s methane become a new opportunity?
