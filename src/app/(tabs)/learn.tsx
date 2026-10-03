@@ -1,12 +1,11 @@
-import React from 'react';
-import { Linking, Pressable, View } from 'react-native';
 import { router } from 'expo-router';
-import { Body, Button, Card, Heading, Icon, Screen, styles } from '../../components/ui';
+import { Body, Button, Card, DisclaimerCard, Heading, Screen } from '../../components/ui';
 const lessons = [
-  ['What is an ACCU?', 'One Australian carbon credit unit represents one tonne of CO₂-e. Actual credits require an eligible project and verified abatement; an estimate here does not create credits.', 'leaf'],
-  ['Why methane matters', 'Methane is a powerful greenhouse gas. Capturing and destroying methane from eligible manure systems can reduce emissions. This demo considers effluent methane, not methane from animal digestion.', 'weather-windy'],
-  ['Why verification costs money', 'Project development, monitoring, reporting, and independent audits require time and expertise. Costs depend on the method and the project.', 'clipboard-check-outline'],
-  ['Why small projects can struggle', 'Some compliance costs are fixed. A smaller carbon opportunity may produce too little gross revenue to justify those costs.', 'chart-bar'],
-  ['Why project timing matters', 'Starting work can affect eligibility. Get advice on the applicable method and registration requirements before committing to a project.', 'clock-outline'],
+  ['What is methane?','Methane is a greenhouse gas. Liquid livestock effluent can release it when organic material breaks down without oxygen. This MVP does not assess enteric methane from cow burps.'],
+  ['What is an ACCU?','An Australian Carbon Credit Unit represents one tonne of carbon dioxide equivalent. Credits must be issued under the ACCU Scheme; an app estimate is not a credit.'],
+  ['Why reduce animal-effluent methane?','Capturing gas and sending it to a suitable flare can destroy methane that would otherwise be released. Route fit, baseline and project emissions need careful review.'],
+  ['Why does monitoring matter?','Biogas flow, methane composition, flare operation and project energy records help establish a credible abatement estimate. Unknown information becomes a preparation task.'],
+  ['Why can verification be expensive?','Projects may need equipment, quality assurance, specialist development, evidence, monitoring and audits. Some costs are fixed even for small projects.'],
+  ['What does Indicative ACCU Equivalent mean?','It is a planning equivalent of preliminary net tonnes CO₂-e, not a promise of issuance. Actual issuance depends on registration, methodology compliance, monitoring, reporting and CER verification.'],
 ] as const;
-export default function Learn() { return <Screen title="A little less mystery" subtitle="The basics, without the jargon.">{lessons.map(([title, text, icon]) => <Card key={title}><View style={styles.row}><Icon name={icon} /><Heading small>{title}</Heading></View><Body muted>{text}</Body></Card>)}<Pressable accessibilityRole="link" accessibilityLabel="Clean Energy Regulator ACCU guidance" onPress={() => void Linking.openURL('https://cer.gov.au/schemes/australian-carbon-credit-unit-scheme')} style={{ minHeight: 44, justifyContent: 'center' }}><Body style={{ color: '#176544', textDecorationLine: 'underline' }}>Clean Energy Regulator ACCU guidance ↗</Body></Pressable><Body muted style={{ fontSize: 12 }}>Burping Cows provides indicative educational estimates only and does not replace Clean Energy Regulator guidance, a registered auditor, financial adviser, legal adviser or carbon project developer.</Body><Button title="About & calculation assumptions" secondary onPress={() => router.push('/about')} /></Screen>; }
+export default function Learn() { return <Screen title="A little less mystery">{lessons.map(([title,text]) => <Card key={title}><Heading small>{title}</Heading><Body>{text}</Body></Card>)}<DisclaimerCard /><Button title="About & assumptions" secondary onPress={() => router.push('/about')} /></Screen>; }

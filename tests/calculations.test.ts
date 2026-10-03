@@ -1,40 +1,91 @@
-import { describe, expect, it } from 'vitest';
-import { calculateACCUs, calculateAssessment, calculateBreakEven, calculateCO2e, calculateMethane } from '../src/lib/calculations';
+import { expect, it } from 'vitest';
+import { calculateAssessment, updateAssessmentInput } from '../src/lib/calculations';
 import { calculateEligibility } from '../src/lib/eligibility';
-import { calculateReadiness } from '../src/lib/readiness';
-import { calculateComplianceBurden } from '../src/lib/compliance';
+import { calculateFinance, annualNPV } from '../src/lib/finance';
 import { demoInput } from '../src/lib/demo';
-import { defaultAssumptions } from '../src/config/assumptions';
-describe('methane and financial calculations', () => {
-  it('reproduces the reference demo without double applying efficiency', () => {
-    const r = calculateAssessment(demoInput);
-    expect(r).toMatchObject({ methaneTonnes: 82, co2e: 2296, accus: 2296, annualValue: 84952, fiveYearValue: 424760, readiness: 60, burden: 'Medium', eligibility: 'LIKELY_ELIGIBLE', verdict: 'Potentially worth investigating' });
-    expect(r.breakEvenYears).toBeCloseTo(275000 / 84952);
-  });
-  it('converts methane volume to tonnes before GWP', () => { const tonnes = calculateMethane({ ...demoInput, methaneInputType: 'm3', methaneM3: 1000 }); expect(tonnes).toBeCloseTo(0.716); expect(calculateCO2e(tonnes)).toBeCloseTo(20.048); });
-  it.each([['Dairy', 25], ['Piggery', 12]] as const)('applies effluent factor and efficiency for %s', (farmType, factor) => { expect(calculateMethane({ ...demoInput, farmType, animalCount: 100, methaneInputType: 'estimator', captureEfficiency: 80 })).toBeCloseTo(100 * factor * .8 / 1000); });
-  it('does not estimate methane for aerobic systems', () => { expect(calculateMethane({ ...demoInput, manureSystem: 'Aerobic pond', methaneInputType: 'estimator' })).toBe(0); });
-  it('rounds ACCUs down', () => expect(calculateACCUs(2296.99)).toBe(2296));
-  it('updates all price-dependent values', () => { const r = calculateAssessment({ ...demoInput, accuPrice: 50 }); expect(r.annualValue).toBe(114800); expect(r.fiveYearValue).toBe(574000); expect(r.breakEvenYears).toBeCloseTo(275000 / 114800); });
-  it('does not represent operating costs as net profit', () => { expect(calculateAssessment({ ...demoInput, annualOperatingCost: 999999 }).breakEvenYears).toBe(calculateAssessment(demoInput).breakEvenYears); });
-  it('returns no payback for zero revenue or unknown implementation cost', () => { expect(calculateBreakEven(100, 50, 0)).toBeNull(); expect(calculateBreakEven(undefined, 50, 100)).toBeNull(); });
-  it('flags gross payback beyond the supplied lifetime', () => { expect(calculateAssessment({ ...demoInput, projectLifetimeYears: 1 }).verdict).toBe('Compliance costs may outweigh expected carbon revenue'); });
-  it('uses custom assumptions consistently', () => { const r = calculateAssessment(demoInput, { ...defaultAssumptions, methaneGwp: 30 }); expect(r.co2e).toBe(2460); expect(r.annualValue).toBe(91020); });
+import { emptyInput } from '../src/types/assessment';
+it('reproduces the deterministic technical and financial demo using unrounded equivalent', () => {
+  const r = calculateAssessment(demoInput);
+  expect(r.technical.annualNetAbatement).toBeCloseTo(1096.91776,8); expect(r.technical.annualWholeUnits).toBe(1096);
+  expect(r.finance.base!.grossCarbonValue).toBeCloseTo(38392.1216,6); expect(r.finance.base!.operatingCash).toBeCloseTo(23392.1216,6);
+  expect(r.finance.base!.simplePayback).toBeCloseTo(6.4124,3); expect(r.finance.base!.npv).toBeCloseTo(50224,0);
+  expect(r.eligibility).toBe('likely_compatible'); expect(r.technical.status).toBe('projected');
 });
-describe('transparent eligibility', () => {
-  it('treats planning only as not started', () => expect(calculateEligibility({ ...demoInput, projectStartedStatus: 'Planning only' }).status).toBe('LIKELY_ELIGIBLE'));
-  it('flags already started projects', () => { const r = calculateEligibility({ ...demoInput, projectStartedStatus: 'Yes' }); expect(r.status).toBe('POSSIBLY_ELIGIBLE'); expect(r.reasons.join(' ')).toContain('timing'); });
-  it.each(['Aerobic pond', 'Dry manure storage', 'Composting'] as const)('rejects the unsupported baseline %s', manureSystem => expect(calculateEligibility({ ...demoInput, manureSystem }).status).toBe('UNLIKELY_ELIGIBLE'));
-  it('lets unsupported evidence take precedence over timing uncertainty', () => expect(calculateEligibility({ ...demoInput, projectStartedStatus: 'Yes', siteControl: 'No' }).status).toBe('UNLIKELY_ELIGIBLE'));
-  it.each(['Covered lagoon', 'Anaerobic digester', 'Other', 'Unsure'] as const)('requires review for %s', manureSystem => expect(calculateEligibility({ ...demoInput, manureSystem }).status).toBe('POSSIBLY_ELIGIBLE'));
-  it('requires review for missing information or uncertain site control', () => { expect(calculateEligibility({ ...demoInput, farmType: '' }).status).toBe('POSSIBLY_ELIGIBLE'); expect(calculateEligibility({ ...demoInput, siteControl: 'Unsure' }).status).toBe('POSSIBLY_ELIGIBLE'); });
+it('unknown gas preserves screening and produces tasks, not zero credits', () => {
+  const r = calculateAssessment({ ...demoInput, biogasVolumeM3: undefined });
+  expect(r.eligibility).toBe('likely_compatible'); expect(r.technical.status).toBe('incomplete'); expect(r.technical.annualWholeUnits).toBeNull(); expect(r.finance.state).toBe('insufficient_data');
+  expect(r.actionPlan.find(t => t.id === 'gas')?.status).toBe('incomplete');
 });
-describe('readiness and compliance', () => {
-  it('awards energy records once, even with both evidence types', () => { expect(calculateReadiness(demoInput).score).toBe(60); expect(calculateReadiness({ ...demoInput, monitoringEquipment: ['Fuel records'] }).score).toBe(60); });
-  it('requires both QA plan and calibration records for the QA weight', () => { expect(calculateReadiness({ ...demoInput, qaPlan: true }).score).toBe(60); expect(calculateReadiness({ ...demoInput, qaPlan: true, calibrationRecords: true }).score).toBe(70); });
-  it('scores full preparation without claiming certification', () => { const input = { ...demoInput, qaPlan: true, calibrationRecords: true, monitoringEquipment: ['Biogas flow meter', 'Gas analyser', 'Fuel records'] }; expect(calculateReadiness(input)).toMatchObject({ score: 100, label: 'Strongly prepared' }); expect(calculateComplianceBurden(input)).toMatchObject({ burden: 'Low', midpoint: 55000 }); });
-  it('does not award unknown site control', () => expect(calculateReadiness({ ...demoInput, siteControl: 'Unsure' }).checklist.find(item => item.id === 'site')?.status).toBe('needs review'));
-  it('makes no monitoring and no records high burden', () => expect(calculateComplianceBurden({ ...demoInput, monitoringEquipment: ['None'], monitoringMaturity: 'None' }).burden).toBe('High'));
-  it('makes started and biomethane projects high burden', () => { expect(calculateComplianceBurden({ ...demoInput, projectStartedStatus: 'Yes' }).burden).toBe('High'); expect(calculateComplianceBurden({ ...demoInput, proposedProject: 'Capture methane for biomethane' }).burden).toBe('High'); });
-  it('generates next steps for actual missing evidence', () => { const steps = calculateAssessment(demoInput).nextSteps.join(' '); expect(steps).toContain('flow monitoring'); expect(steps).toContain('gas concentration'); expect(steps).toContain('calibration'); expect(steps).not.toContain('Confirm and document control'); });
+it('never derives credits from animal count alone', () => { const r = calculateAssessment({ ...emptyInput, farmType: 'Dairy', animalCount: 10000 }); expect(r.technical.annualNetAbatement).toBeNull(); });
+it('requires operation and emissions assumptions rather than inventing 100% or zero', () => { for (const key of ['flareOperationFraction','projectEmissionsTCO2e'] as const) expect(calculateAssessment({ ...demoInput, [key]: undefined }).technical.status).toBe('incomplete'); });
+it('applies flare operation and destruction once and annualises consistently', () => {
+  const r = calculateAssessment({ ...demoInput, flareOperationFraction: .5, periodMonths: 6 });
+  expect(r.technical.breakdown!.methaneDestroyedM3).toBeCloseTo(29400);
+  expect(r.technical.annualNetAbatement).toBeCloseTo((558.45888-20)*2);
+});
+it('unknown rights are unresolved while explicitly absent rights are a route issue', () => {
+  expect(calculateEligibility({ ...demoInput, accuRights: 'unknown' }).status).toBe('needs_review');
+  expect(calculateEligibility({ ...demoInput, accuRights: 'no' }).status).toBe('incompatible_selected_route');
+});
+it('government grants and implementation activity trigger review, not automatic rejection', () => {
+  expect(calculateEligibility({ ...demoInput, governmentFunding: 'yes', projectStage: 'Equipment purchased' }).status).toBe('needs_review');
+  const tasks = calculateAssessment({ ...demoInput, projectStage: 'Construction started' }).actionPlan;
+  expect(tasks.find(t => t.id === 'timing')?.status).toBe('needs_review');
+});
+it('outside-MVP is separate from barriers and never emits a fake calculation', () => {
+  const r = calculateAssessment({ ...demoInput, proposedProject: 'Produce biomethane', siteControl: 'no' });
+  expect(r.eligibility).toBe('outside_mvp'); expect(r.technical.annualNetAbatement).toBeNull();
+});
+it('route changes clear discarded gas and costs even when switching back', () => {
+  const changed = updateAssessmentInput(demoInput,{ proposedProject: 'Produce biomethane' });
+  const back = updateAssessmentInput(changed,{ proposedProject: 'Capture and flare methane' });
+  expect(back.biogasVolumeM3).toBeUndefined(); expect(back.implementationCost).toBeUndefined(); expect(calculateAssessment(back).technical.status).toBe('incomplete');
+});
+it('missing costs differ from explicit zero and never create a payback', () => {
+  const t = calculateAssessment(demoInput).technical.annualNetAbatement;
+  expect(calculateFinance({ ...demoInput, annualOperatingCost: undefined },t).state).toBe('insufficient_data');
+  expect(calculateFinance({ ...demoInput, annualOperatingCost: 0 },t).base).not.toBeNull();
+});
+it('uses operating costs, fees and revenue in cash flow and payback', () => {
+  const f = calculateAssessment({ ...demoInput, annualOperatingCost: 20000, annualFees: 1000, annualEnergySavings: 2000 }).finance;
+  expect(f.base!.operatingCash).toBeCloseTo(38392.1216+2000-20000-5000-1000);
+});
+it('classifies finances independently of eligibility and preparation', () => {
+  const r = calculateAssessment({ ...demoInput, siteControl: 'unknown', implementationCost: 10000000 });
+  expect(r.eligibility).toBe('needs_review'); expect(r.finance.state).toBe('unfavorable'); expect(r.finance.base!.simplePayback).toBeGreaterThan(15);
+});
+it('distinguishes attractive, sensitive and unfavorable financial cases', () => {
+  expect(calculateAssessment(demoInput).finance.state).toBe('potentially_attractive');
+  expect(calculateAssessment({ ...demoInput, lowAccuPrice: 0 }).finance.state).toBe('sensitive_to_assumptions');
+  const f = calculateAssessment({ ...demoInput, annualOperatingCost: 999999 }).finance;
+  expect(f.state).toBe('unfavorable'); expect(f.base!.simplePayback).toBeNull();
+});
+it('NPV handles zero discount without division by zero', () => expect(annualNPV(100,10,15,0)).toBe(50));
+it('measurement provenance does not claim independent verification', () => {
+  const r = calculateAssessment({ ...demoInput, biogasSource: 'measurement', methaneSource: 'measurement', destructionSource: 'measurement', operationSource: 'measurement', emissionsSource: 'measurement' });
+  expect(r.technical.status).toBe('measured_unverified');
+});
+it('unknown QA and calibration are not silently false or complete', () => {
+  const r = calculateAssessment(demoInput);
+  expect(r.actionPlan.find(t => t.id === 'qa')?.status).toBe('incomplete'); expect(r.preparation.phases).toHaveLength(3);
+  expect(r.actionPlan.some(t => t.priority === 'high' && t.status !== 'complete')).toBe(true);
+});
+it('includes financial gaps in phase and overall preparation totals', () => {
+  const r = calculateAssessment({ ...demoInput, developmentCost: undefined });
+  expect(r.actionPlan.some(task => task.id === 'finance')).toBe(true);
+  for (const phase of r.preparation.phases) {
+    const tasks = r.actionPlan.filter(task => task.phase === phase.id);
+    expect(phase.total).toBe(tasks.length);
+    expect(phase.complete).toBe(tasks.filter(task => task.status === 'complete').length);
+  }
+  expect(r.preparation.progress).toBe(Math.round(r.actionPlan.filter(task => task.status === 'complete').length / r.actionPlan.length * 100));
+});
+it('does not calculate unsupported farms or selected other routes using leftover demo inputs', () => {
+  expect(calculateAssessment({ ...demoInput, farmType: 'Other' }).technical.breakdown).toBeNull();
+  const r = calculateAssessment({ ...demoInput, proposedProject: 'Other / unsure' });
+  expect(r.eligibility).toBe('outside_mvp'); expect(r.technical.breakdown).toBeNull();
+});
+it('invalid market price does not become displayed negative carbon revenue', () => {
+  const r = calculateAssessment({ ...demoInput, accuPrice: -10 });
+  expect(r.finance.state).toBe('insufficient_data'); expect(r.finance.grossCarbonValue).toBeNull();
 });

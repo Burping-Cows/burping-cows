@@ -33,7 +33,7 @@ it('restores an account session and its private draft instead of the guest draft
   mocks.store.set('draft:account:alice', { input: demoInput, started: true, step: 3 });
   mocks.store.set('welcomed', true);
   await mount();
-  expect(app.user?.id).toBe('alice'); expect(app.draft.input.animalCount).toBe(450); expect(app.welcomed).toBe(true);
+  expect(app.user?.id).toBe('alice'); expect(app.draft.input.animalCount).toBe(500); expect(app.welcomed).toBe(true);
 });
 it('switches account drafts and defaults without copying the previous account data', async () => {
   await mount();
@@ -41,7 +41,7 @@ it('switches account drafts and defaults without copying the previous account da
   mocks.store.set('draft:account:bob', { input: { ...demoInput, animalCount: 12 }, started: true, step: 1 });
   await act(async () => { mocks.user = account('bob'); mocks.callback?.('SIGNED_IN', { user: mocks.user }); });
   expect(app.draft.input.animalCount).toBe(12); expect(app.farmDefaults).toBeNull();
-  expect((mocks.store.get('draft:account:alice') as typeof app.draft).input.animalCount).toBe(450);
+  expect((mocks.store.get('draft:account:alice') as typeof app.draft).input.animalCount).toBe(500);
   expect((mocks.store.get('draft:account:bob') as typeof app.draft).input.animalCount).toBe(12);
 });
 it('actually signs out permanent accounts while preserving their stored draft', async () => {

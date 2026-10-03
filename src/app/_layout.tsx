@@ -28,7 +28,7 @@ export function Navigation() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="assessment/farm-profile" />
         <Stack.Screen name="assessment/project" />
-        <Stack.Screen name="assessment/results" />
+        <Stack.Screen name="assessment/screening" /><Stack.Screen name="assessment/technical" /><Stack.Screen name="assessment/finance" /><Stack.Screen name="assessment/results" />
         <Stack.Screen name="assessment/action-plan" />
         <Stack.Screen name="assessment-details/[id]" />
       </Stack.Protected>
