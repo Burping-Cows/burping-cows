@@ -165,6 +165,59 @@ function Hero() {
   );
 }
 
+const appScreens = [
+  { image: "farm", title: "Start with your farm", description: "Tell us about your farm, effluent and existing setup.", alt: "Burping Cows farm and baseline screen with Green Valley Dairy demo details" },
+  { image: "results", title: "See the opportunity", description: "Review eligibility, preparation, viability and calculation status.", alt: "Burping Cows project opportunity screen showing the four independent assessment results" },
+  { image: "action-plan", title: "Know your next step", description: "Turn the gaps in your assessment into a practical evidence checklist.", alt: "Burping Cows action plan screen showing preparation progress and priority tasks" },
+];
+
+function AppScreenshots() {
+  return (
+    <section className="section app-showcase" id="the-app" aria-labelledby="app-showcase-title">
+      <div className="container">
+        <div className="section-heading center">
+          <p className="showcase-eyebrow">BURPING COWS IN YOUR HANDS</p>
+          <h2 id="app-showcase-title">Your farm. A clearer picture. A plan.</h2>
+          <p>From the first question to your next step, see how Burping Cows helps you explore the possibilities.</p>
+        </div>
+        <div className="device-gallery">
+          {appScreens.map((screen, index) => (
+            <figure className="device-story" key={screen.image}>
+              <div className="iphone-frame">
+                <span className="phone-button phone-mute" aria-hidden="true" />
+                <span className="phone-button phone-volume-up" aria-hidden="true" />
+                <span className="phone-button phone-volume-down" aria-hidden="true" />
+                <span className="phone-button phone-power" aria-hidden="true" />
+                <div className="iphone-screen">
+                  <div className="phone-status" aria-hidden="true">
+                    <span>9:41</span>
+                    <span className="phone-island"><i /></span>
+                    <svg width="48" height="12" viewBox="0 0 48 12" fill="currentColor">
+                      <path d="M0 9h2v3H0zm4-3h2v6H4zm4-3h2v9H8zm4-3h2v12h-2z" />
+                      <path d="M18 4a9 9 0 0 1 12 0l-1.5 1.5a7 7 0 0 0-9 0zm3 3a4.5 4.5 0 0 1 6 0l-1.5 1.5a2.5 2.5 0 0 0-3 0zm2 3h2l-1 1z" />
+                      <rect x="34" y="2" width="11" height="8" rx="2" fill="none" stroke="currentColor" />
+                      <rect x="36" y="4" width="7" height="4" rx="1" />
+                      <path d="M46 4h2v4h-2z" />
+                    </svg>
+                  </div>
+                  <img src={`/screenshots/${screen.image}.jpg`} alt={screen.alt} width="378" height="780" loading="lazy" />
+                  <div className="phone-home" aria-hidden="true"><span /></div>
+                </div>
+              </div>
+              <figcaption>
+                <span className="showcase-step">0{index + 1}</span>
+                <h3>{screen.title}</h3>
+                <p>{screen.description}</p>
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+        <p className="showcase-note">Screens captured from the app’s web build using the Green Valley Dairy demo. Illustrative planning data.</p>
+      </div>
+    </section>
+  );
+}
+
 function ProblemSection() {
   return (
     <section className="problem section" aria-label="The problem">
@@ -1003,6 +1056,7 @@ export default function App() {
         <AccuExplainer />
         <MarketExamples />
         <HowItWorks />
+        <AppScreenshots />
         <ExampleAssessment />
         <FinancialOpportunity />
         <ReadinessSection />

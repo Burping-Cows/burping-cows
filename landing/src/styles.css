@@ -2373,3 +2373,34 @@ h3 {
     overflow-wrap: anywhere;
   }
 }
+
+/* Real app captures in a reusable iPhone shell. */
+.app-showcase { background: #f6f8f0; overflow: hidden; }
+.section-heading .showcase-eyebrow { color: var(--primary); font-size: .75rem; font-weight: 700; letter-spacing: .14em; margin: 0 0 18px; }
+.device-gallery { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 48px; max-width: 1000px; margin: 64px auto 0; }
+.device-story { margin: 0; min-width: 0; text-align: center; }
+.iphone-frame { position: relative; width: min(100%, 280px); margin: 0 auto; padding: 8px; border: 2px solid #83877f; border-radius: 46px; background: #161917; box-shadow: inset 0 0 0 2px #343a35, 0 24px 40px -16px #123d383b, 0 6px 12px #123d3812; }
+.iphone-screen { overflow: hidden; border-radius: 36px; background: #fafbf5; }
+.phone-status { height: 42px; display: flex; align-items: center; justify-content: space-between; padding: 0 18px; color: #17251e; font-size: 10px; font-weight: 700; position: relative; }
+.phone-island { position: absolute; top: 9px; left: 50%; transform: translateX(-50%); width: 76px; height: 22px; border-radius: 20px; background: #0b0e0c; }
+.phone-island i { position: absolute; right: 9px; top: 7px; width: 7px; height: 7px; border-radius: 50%; background: #132332; box-shadow: inset 0 0 0 2px #192b38; }
+.phone-status svg { width: 38px; }
+.iphone-screen img { width: 100%; height: auto; }
+.phone-home { height: 22px; display: flex; justify-content: center; align-items: center; }
+.phone-home span { width: 88px; height: 4px; border-radius: 4px; background: #17251e; }
+.phone-button { position: absolute; width: 3px; background: #5d645c; border-radius: 2px; left: -4px; }
+.phone-mute { top: 82px; height: 18px; }
+.phone-volume-up { top: 118px; height: 35px; }
+.phone-volume-down { top: 166px; height: 35px; }
+.phone-power { left: auto; right: -4px; top: 136px; height: 57px; }
+.device-story figcaption { margin-top: 32px; }
+.showcase-step { display: block; font-size: .75rem; color: var(--primary); font-weight: 700; letter-spacing: .12em; margin-bottom: 12px; }
+.device-story h3 { font-size: 1.15rem; }
+.device-story figcaption p { font-size: .875rem; margin-top: 10px; }
+.showcase-note { text-align: center; font-size: .75rem; margin: 40px auto 0; max-width: 70ch; }
+@media (max-width: 1000px) { .device-gallery { gap: 28px; } }
+@media (max-width: 700px) {
+  .device-gallery { grid-template-columns: 1fr; gap: 48px; margin-top: 40px; }
+  .device-story { max-width: 320px; margin-inline: auto; }
+  .device-story figcaption { margin-top: 24px; }
+}
